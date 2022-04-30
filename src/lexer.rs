@@ -1,0 +1,3 @@
+enum Token {
+    Identifier(String),
+}
