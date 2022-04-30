@@ -26,6 +26,7 @@ impl Lexer {
     }
 
     fn get_token(&self) -> Token {
+        // TODO(Hícaro): Get current token
         return Token::Identifier("Something".to_string());
     }
 
