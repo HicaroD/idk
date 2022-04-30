@@ -1,26 +1,48 @@
-enum Token {
-    Identifier(String),
+pub enum Token {
     Def,
+    Identifier(String),
 }
 
 pub struct Lexer {
-    source_code: String,
+    source_code: Vec<char>,
+    position: usize,
+    current_char: char,
 }
 
 impl Lexer {
-    pub fn new(source_code: String) -> Self {
+    pub fn new(source_code: Vec<char>) -> Self {
         Self {
-            source_code
+            source_code,
+            position: 0,
+            current_char: '0',
         }
     }
 
-    pub fn tokenize(&self) {
-        let mut source_code = self.source_code.chars();
+    fn advance(&mut self) {
+        if self.position < self.source_code.len() {
+            self.current_char = self.source_code[self.position];
+            self.position += 1;
+        }
+    }
+
+    fn get_token(&self) -> Token {
+        return Token::Identifier("Something".to_string());
+    }
+
+    pub fn tokenize(&mut self) -> Vec<Token> {
         let mut tokens: Vec<Token> = vec![];
 
-        while let Some(character) = source_code.next() {
-            // TODO(Hícaro): Tokenize file
-            println!("{character}");
+        self.advance();
+        loop {
+            println!("{:?}", self.current_char);
+
+            // TODO(Hícaro): Improve the condition to break the tokenizer loop
+            if self.position == self.source_code.len() {
+                break;
+            }
+            self.advance();
         }
+
+        return tokens;
     }
 }
