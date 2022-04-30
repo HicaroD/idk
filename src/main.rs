@@ -1,3 +1,22 @@
-fn main() {
-    println!("Hello, world!");
+mod lexer;
+
+use lexer::Lexer;
+use std::{env, fs, io};
+
+fn get_source_code(path: String) -> io::Result<Vec<char>> {
+    return Ok(fs::read_to_string(path)?.chars().collect::<Vec<char>>());
+}
+
+fn main() -> io::Result<()> {
+    let args: Vec<String> = env::args().collect();
+
+    if args.len() < 2 {
+        eprintln!("Error: No input files");
+        std::process::exit(1);
+    }
+
+    let source_code = get_source_code(args[1].clone())?;
+    let mut lexer = Lexer::new(source_code);
+    lexer.tokenize();
+    Ok(())
 }
