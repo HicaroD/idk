@@ -32,7 +32,7 @@ impl Lexer {
                 let mut identifier = String::from(letter);
                 self.advance();
 
-                while self.current_char.is_alphabetic() || self.current_char == '_' {
+                while self.current_char.is_alphanumeric() || self.current_char == '_' {
                     identifier.push(self.current_char);
                     self.advance();
                 }
