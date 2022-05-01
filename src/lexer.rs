@@ -8,6 +8,7 @@ pub enum Token {
     ClosingPar,
     ClosingCurly,
     Semicolon,
+    EqualSign,
     Identifier(String),
 }
 
@@ -33,7 +34,20 @@ impl Lexer {
         }
     }
 
+    fn skip_any_whitespace(&mut self) {
+        while self.current_char.is_whitespace() || self.current_char.is_ascii_whitespace() {
+            self.advance();
+        }
+    }
+
+    fn consume_and_advance(&mut self, token: Token) -> Token {
+        self.advance();
+        token
+    }
+
     fn get_token(&mut self) -> Token {
+        self.skip_any_whitespace();
+
         match self.current_char {
             letter if self.current_char.is_alphabetic() => {
                 let mut identifier = String::from(letter);
@@ -47,17 +61,19 @@ impl Lexer {
                 Token::Identifier(identifier)
             }
 
-            ':' => Token::Colon,
+            ':' => self.consume_and_advance(Token::Colon),
 
-            '(' => Token::OpeningPar,
+            '(' => self.consume_and_advance(Token::OpeningPar),
 
-            ')' => Token::ClosingPar,
+            ')' => self.consume_and_advance(Token::ClosingPar),
 
-            '{' => Token::OpeningCurly,
+            '{' => self.consume_and_advance(Token::OpeningCurly),
 
-            '}' => Token::ClosingCurly,
+            '}' => self.consume_and_advance(Token::ClosingCurly),
 
-            ';' => Token::Semicolon,
+            ';' => self.consume_and_advance(Token::Semicolon),
+
+            '=' => self.consume_and_advance(Token::EqualSign),
 
             _ => {
                 // TODO(Hícaro): When the program finds a whitespace, it crashes, but it
@@ -89,13 +105,8 @@ impl Lexer {
             if self.position == self.source_code.len() {
                 break;
             }
-            self.advance();
         }
         
-        for token in tokens.iter() {
-            println!("{:?}", token);
-        }
-
         return tokens;
     }
 }
