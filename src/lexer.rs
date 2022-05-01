@@ -9,6 +9,8 @@ pub enum Token {
     ClosingCurly,
     Semicolon,
     EqualSign,
+    GreaterThan,
+    LesserThan,
     Identifier(String),
 }
 
@@ -74,6 +76,10 @@ impl Lexer {
             ';' => self.consume_and_advance(Token::Semicolon),
 
             '=' => self.consume_and_advance(Token::EqualSign),
+
+            '>' => self.consume_and_advance(Token::GreaterThan),
+
+            '<' => self.consume_and_advance(Token::LesserThan),
 
             _ => {
                 // TODO(Hícaro): When the program finds a whitespace, it crashes, but it
