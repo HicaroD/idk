@@ -13,6 +13,7 @@ pub enum Token {
     If,
     Elif, // Else if
     Else,
+    Number(String),
     Identifier(String),
 }
 
@@ -63,6 +64,18 @@ impl Lexer {
                 }
 
                 Token::Identifier(identifier)
+            }
+
+            digit if digit.is_ascii_digit() => {
+                let mut number = String::from(digit);
+                self.advance();
+
+                while self.current_char.is_ascii_digit() || self.current_char == '.' {
+                    number.push(self.current_char);
+                    self.advance();
+                }
+
+                Token::Number(number)
             }
 
             ':' => self.consume_and_advance(Token::Colon),
