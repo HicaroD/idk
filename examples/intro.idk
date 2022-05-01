@@ -1,3 +1,4 @@
 def main(): int {
+    number: int = 12;
     return 0;
 }

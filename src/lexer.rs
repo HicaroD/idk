@@ -1,5 +1,13 @@
+// TODO(Hícaro): Implement Display trait
+#[derive(Debug)]
 pub enum Token {
     Def,
+    Colon,
+    OpeningPar,
+    OpeningCurly,
+    ClosingPar,
+    ClosingCurly,
+    Semicolon,
     Identifier(String),
 }
 
@@ -25,8 +33,39 @@ impl Lexer {
         }
     }
 
-    fn get_token(&self) -> Token {
-        return Token::Identifier("Something".to_string());
+    fn get_token(&mut self) -> Token {
+        match self.current_char {
+            letter if self.current_char.is_alphabetic() => {
+                let mut identifier = String::from(letter);
+                self.advance();
+
+                while self.current_char.is_alphanumeric() || self.current_char == '_' {
+                    identifier.push(self.current_char);
+                    self.advance();
+                }
+
+                Token::Identifier(identifier)
+            }
+
+            ':' => Token::Colon,
+
+            '(' => Token::OpeningPar,
+
+            ')' => Token::ClosingPar,
+
+            '{' => Token::OpeningCurly,
+
+            '}' => Token::ClosingCurly,
+
+            ';' => Token::Semicolon,
+
+            _ => {
+                // TODO(Hícaro): When the program finds a whitespace, it crashes, but it
+                // should ignore the whitespace
+                eprintln!("Error: Invalid token '{:?}'", self.current_char);
+                std::process::exit(1);
+            }
+        }
     }
 
     pub fn tokenize(&mut self) -> Vec<Token> {
@@ -34,7 +73,8 @@ impl Lexer {
 
         self.advance();
         loop {
-            println!("{:?}", self.current_char);
+            let token = self.get_token();
+            println!("{:?}", token);
 
             // TODO(Hícaro): Improve the condition to break the tokenizer loop
             if self.position == self.source_code.len() {
