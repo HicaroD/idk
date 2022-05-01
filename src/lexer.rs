@@ -1,3 +1,4 @@
+#[derive(Debug)]
 pub enum Token {
     Def,
     Identifier(String),
@@ -25,9 +26,25 @@ impl Lexer {
         }
     }
 
-    fn get_token(&self) -> Token {
-        // TODO(Hícaro): Get current token
-        return Token::Identifier("Something".to_string());
+    fn get_token(&mut self) -> Token {
+        match self.current_char {
+            letter if self.current_char.is_alphabetic() => {
+                let mut identifier = String::from(letter);
+                self.advance();
+
+                while self.current_char.is_alphabetic() {
+                    identifier.push(self.current_char);
+                    self.advance();
+                }
+
+                Token::Identifier(identifier)
+            }
+
+            _ => {
+                eprintln!("Error: Invalid token");
+                std::process::exit(1);
+            }
+        }
     }
 
     pub fn tokenize(&mut self) -> Vec<Token> {
@@ -35,7 +52,8 @@ impl Lexer {
 
         self.advance();
         loop {
-            println!("{:?}", self.current_char);
+            let token = self.get_token();
+            println!("{:?}", token);
 
             // TODO(Hícaro): Improve the condition to break the tokenizer loop
             if self.position == self.source_code.len() {
