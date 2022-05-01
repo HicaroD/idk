@@ -76,11 +76,24 @@ impl Lexer {
             let token = self.get_token();
             println!("{:?}", token);
 
+            if let Token::Identifier(ref ident) = token {
+                match ident.as_str() {
+                    "def" => tokens.push(Token::Def),
+                    _ => tokens.push(Token::Identifier(ident.to_string())),
+                }
+            } else {
+                tokens.push(token);
+            }
+
             // TODO(Hícaro): Improve the condition to break the tokenizer loop
             if self.position == self.source_code.len() {
                 break;
             }
             self.advance();
+        }
+        
+        for token in tokens.iter() {
+            println!("{:?}", token);
         }
 
         return tokens;
