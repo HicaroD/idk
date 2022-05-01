@@ -39,7 +39,7 @@ impl Lexer {
     }
 
     fn skip_any_whitespace(&mut self) {
-        while self.current_char.is_whitespace() || self.current_char.is_ascii_whitespace() {
+        while self.current_char.is_whitespace() {
             self.advance();
         }
     }
