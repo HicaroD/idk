@@ -13,6 +13,7 @@ pub enum Token {
     If,
     Elif, // Else if
     Else,
+    Operator(char),
     Number(String),
     Identifier(String),
 }
@@ -96,6 +97,16 @@ impl Lexer {
 
             '<' => self.consume_and_advance(Token::LesserThan),
 
+            '+'  => self.consume_and_advance(Token::Operator('+')),
+
+            '-'  => self.consume_and_advance(Token::Operator('-')),
+
+            '/'  => self.consume_and_advance(Token::Operator('/')),
+
+            '*'  => self.consume_and_advance(Token::Operator('*')),
+
+            '%'  => self.consume_and_advance(Token::Operator('%')),
+
             _ => {
                 eprintln!("Error: Invalid token '{:?}'", self.current_char);
                 std::process::exit(1);
@@ -109,7 +120,6 @@ impl Lexer {
         self.advance();
         loop {
             let token = self.get_token();
-            println!("{:?}", token);
 
             if let Token::Identifier(ref ident) = token {
                 match ident.as_str() {
@@ -127,6 +137,9 @@ impl Lexer {
             if self.position == self.source_code.len() {
                 break;
             }
+        }
+        for token in tokens.iter() {
+            println!("{:?}", token);
         }
 
         return tokens;
