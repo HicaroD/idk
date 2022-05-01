@@ -100,8 +100,8 @@ impl Lexer {
 
             if let Token::Identifier(ref ident) = token {
                 match ident.as_str() {
-                    "def"  => tokens.push(Token::Def),
-                    "if"   => tokens.push(Token::If),
+                    "def" => tokens.push(Token::Def),
+                    "if" => tokens.push(Token::If),
                     "elif" => tokens.push(Token::Elif),
                     "else" => tokens.push(Token::Else),
                     _ => tokens.push(token.clone()),
@@ -115,7 +115,7 @@ impl Lexer {
                 break;
             }
         }
-        
+
         return tokens;
     }
 }
