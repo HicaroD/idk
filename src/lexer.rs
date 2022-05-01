@@ -1,4 +1,3 @@
-// TODO(Hícaro): Implement Display trait
 #[derive(Debug, Clone)]
 pub enum Token {
     Def,
@@ -85,8 +84,6 @@ impl Lexer {
             '<' => self.consume_and_advance(Token::LesserThan),
 
             _ => {
-                // TODO(Hícaro): When the program finds a whitespace, it crashes, but it
-                // should ignore the whitespace
                 eprintln!("Error: Invalid token '{:?}'", self.current_char);
                 std::process::exit(1);
             }
