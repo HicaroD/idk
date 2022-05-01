@@ -1,6 +1,13 @@
+// TODO(Hícaro): Implement Display trait
 #[derive(Debug)]
 pub enum Token {
     Def,
+    Colon,
+    OpeningPar,
+    OpeningCurly,
+    ClosingPar,
+    ClosingCurly,
+    Semicolon,
     Identifier(String),
 }
 
@@ -40,8 +47,22 @@ impl Lexer {
                 Token::Identifier(identifier)
             }
 
+            ':' => Token::Colon,
+
+            '(' => Token::OpeningPar,
+
+            ')' => Token::ClosingPar,
+
+            '{' => Token::OpeningCurly,
+
+            '}' => Token::ClosingCurly,
+
+            ';' => Token::Semicolon,
+
             _ => {
-                eprintln!("Error: Invalid token");
+                // TODO(Hícaro): When the program finds a whitespace, it crashes, but it
+                // should ignore the whitespace
+                eprintln!("Error: Invalid token '{:?}'", self.current_char);
                 std::process::exit(1);
             }
         }
