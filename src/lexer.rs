@@ -1,5 +1,5 @@
 // TODO(Hícaro): Implement Display trait
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Token {
     Def,
     Colon,
@@ -11,6 +11,9 @@ pub enum Token {
     EqualSign,
     GreaterThan,
     LesserThan,
+    If,
+    Elif, // Else if
+    Else,
     Identifier(String),
 }
 
@@ -100,8 +103,11 @@ impl Lexer {
 
             if let Token::Identifier(ref ident) = token {
                 match ident.as_str() {
-                    "def" => tokens.push(Token::Def),
-                    _ => tokens.push(Token::Identifier(ident.to_string())),
+                    "def"  => tokens.push(Token::Def),
+                    "if"   => tokens.push(Token::If),
+                    "elif" => tokens.push(Token::Elif),
+                    "else" => tokens.push(Token::Else),
+                    _ => tokens.push(token.clone()),
                 }
             } else {
                 tokens.push(token);
