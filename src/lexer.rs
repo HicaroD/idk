@@ -1,5 +1,4 @@
-// TODO(Hícaro): Implement Display trait
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Token {
     Def,
     Colon,
@@ -8,6 +7,13 @@ pub enum Token {
     ClosingPar,
     ClosingCurly,
     Semicolon,
+    EqualSign,
+    GreaterThan,
+    LesserThan,
+    If,
+    Elif, // Else if
+    Else,
+    Number(String),
     Identifier(String),
 }
 
@@ -33,7 +39,20 @@ impl Lexer {
         }
     }
 
+    fn skip_any_whitespace(&mut self) {
+        while self.current_char.is_whitespace() {
+            self.advance();
+        }
+    }
+
+    fn consume_and_advance(&mut self, token: Token) -> Token {
+        self.advance();
+        token
+    }
+
     fn get_token(&mut self) -> Token {
+        self.skip_any_whitespace();
+
         match self.current_char {
             letter if self.current_char.is_alphabetic() => {
                 let mut identifier = String::from(letter);
@@ -47,21 +66,37 @@ impl Lexer {
                 Token::Identifier(identifier)
             }
 
-            ':' => Token::Colon,
+            digit if digit.is_ascii_digit() => {
+                let mut number = String::from(digit);
+                self.advance();
 
-            '(' => Token::OpeningPar,
+                while self.current_char.is_ascii_digit() || self.current_char == '.' {
+                    number.push(self.current_char);
+                    self.advance();
+                }
 
-            ')' => Token::ClosingPar,
+                Token::Number(number)
+            }
 
-            '{' => Token::OpeningCurly,
+            ':' => self.consume_and_advance(Token::Colon),
 
-            '}' => Token::ClosingCurly,
+            '(' => self.consume_and_advance(Token::OpeningPar),
 
-            ';' => Token::Semicolon,
+            ')' => self.consume_and_advance(Token::ClosingPar),
+
+            '{' => self.consume_and_advance(Token::OpeningCurly),
+
+            '}' => self.consume_and_advance(Token::ClosingCurly),
+
+            ';' => self.consume_and_advance(Token::Semicolon),
+
+            '=' => self.consume_and_advance(Token::EqualSign),
+
+            '>' => self.consume_and_advance(Token::GreaterThan),
+
+            '<' => self.consume_and_advance(Token::LesserThan),
 
             _ => {
-                // TODO(Hícaro): When the program finds a whitespace, it crashes, but it
-                // should ignore the whitespace
                 eprintln!("Error: Invalid token '{:?}'", self.current_char);
                 std::process::exit(1);
             }
@@ -76,11 +111,22 @@ impl Lexer {
             let token = self.get_token();
             println!("{:?}", token);
 
+            if let Token::Identifier(ref ident) = token {
+                match ident.as_str() {
+                    "def" => tokens.push(Token::Def),
+                    "if" => tokens.push(Token::If),
+                    "elif" => tokens.push(Token::Elif),
+                    "else" => tokens.push(Token::Else),
+                    _ => tokens.push(token.clone()),
+                }
+            } else {
+                tokens.push(token);
+            }
+
             // TODO(Hícaro): Improve the condition to break the tokenizer loop
             if self.position == self.source_code.len() {
                 break;
             }
-            self.advance();
         }
 
         return tokens;

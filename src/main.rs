@@ -16,6 +16,11 @@ fn main() -> io::Result<()> {
     }
 
     let source_code = get_source_code(args[1].clone())?;
+
+    if source_code.len() == 0 {
+        std::process::exit(1);
+    }
+
     let mut lexer = Lexer::new(source_code);
     lexer.tokenize();
     Ok(())
