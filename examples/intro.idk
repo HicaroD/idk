@@ -1,3 +1,4 @@
 def main(): int {
+    variable_name = 12;
     return 0;
 }
