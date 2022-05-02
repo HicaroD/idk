@@ -1,6 +1,15 @@
 #[derive(Debug, Clone)]
 pub enum Token {
-    Def,
+    SpecialChar(SpecialCharId),
+    Keyword(KeywordId),
+    Operator(OperatorId), 
+    RelOperator(RelOperatorId),
+    Number(String),
+    Identifier(String),
+}
+
+#[derive(Debug, Clone)]
+enum SpecialCharId {
     Colon,
     OpeningPar,
     OpeningCurly,
@@ -8,14 +17,34 @@ pub enum Token {
     ClosingCurly,
     Semicolon,
     EqualSign,
-    GreaterThan,
-    LesserThan,
+}
+
+#[derive(Debug, Clone)]
+enum KeywordId {
+    Def,
     If,
     Elif, // Else if
     Else,
-    Operator(char),
-    Number(String),
-    Identifier(String),
+    Return,
+}
+
+#[derive(Debug, Clone)]
+enum OperatorId {
+    Plus,
+    Minus,
+    Mod,
+    Divides,
+    Times,
+}
+
+#[derive(Debug, Clone)]
+enum RelOperatorId {
+    GreaterThan,
+    LesserThan,
+    GreaterThanOrEqual,
+    LessThanOrEqual,
+    NotEqual, // !=
+    EqualTo,  // ==
 }
 
 pub struct Lexer {
@@ -79,33 +108,33 @@ impl Lexer {
                 Token::Number(number)
             }
 
-            ':' => self.consume_and_advance(Token::Colon),
+            ':' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::Colon)),
 
-            '(' => self.consume_and_advance(Token::OpeningPar),
+            '(' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::OpeningPar)),
 
-            ')' => self.consume_and_advance(Token::ClosingPar),
+            ')' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::ClosingPar)),
 
-            '{' => self.consume_and_advance(Token::OpeningCurly),
+            '{' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::OpeningCurly)),
 
-            '}' => self.consume_and_advance(Token::ClosingCurly),
+            '}' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::ClosingCurly)),
 
-            ';' => self.consume_and_advance(Token::Semicolon),
+            ';' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::Semicolon)),
 
-            '=' => self.consume_and_advance(Token::EqualSign),
+            '=' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::EqualSign)),
 
-            '>' => self.consume_and_advance(Token::GreaterThan),
+            '>' => self.consume_and_advance(Token::RelOperator(RelOperatorId::GreaterThan)),
 
-            '<' => self.consume_and_advance(Token::LesserThan),
+            '<' => self.consume_and_advance(Token::RelOperator(RelOperatorId::LesserThan)),
 
-            '+'  => self.consume_and_advance(Token::Operator('+')),
+            '+'  => self.consume_and_advance(Token::Operator(OperatorId::Plus)),
 
-            '-'  => self.consume_and_advance(Token::Operator('-')),
+            '-'  => self.consume_and_advance(Token::Operator(OperatorId::Minus)),
 
-            '/'  => self.consume_and_advance(Token::Operator('/')),
+            '/'  => self.consume_and_advance(Token::Operator(OperatorId::Divides)),
 
-            '*'  => self.consume_and_advance(Token::Operator('*')),
+            '*'  => self.consume_and_advance(Token::Operator(OperatorId::Times)),
 
-            '%'  => self.consume_and_advance(Token::Operator('%')),
+            '%'  => self.consume_and_advance(Token::Operator(OperatorId::Mod)),
 
             _ => {
                 eprintln!("Error: Invalid token '{:?}'", self.current_char);
@@ -123,10 +152,11 @@ impl Lexer {
 
             if let Token::Identifier(ref ident) = token {
                 match ident.as_str() {
-                    "def" => tokens.push(Token::Def),
-                    "if" => tokens.push(Token::If),
-                    "elif" => tokens.push(Token::Elif),
-                    "else" => tokens.push(Token::Else),
+                    "def" => tokens.push(Token::Keyword(KeywordId::Def)),
+                    "if" => tokens.push(Token::Keyword(KeywordId::If)),
+                    "elif" => tokens.push(Token::Keyword(KeywordId::Elif)),
+                    "else" => tokens.push(Token::Keyword(KeywordId::Else)),
+                    "return" => tokens.push(Token::Keyword(KeywordId::Return)),
                     _ => tokens.push(token.clone()),
                 }
             } else {
