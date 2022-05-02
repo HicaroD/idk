@@ -1,5 +1,5 @@
 def main(): int {
-    number: int = 12;
+    number: int = 12 + 12;
     another_number: float = 25.15;
     return 0;
 }

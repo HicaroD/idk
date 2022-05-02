@@ -22,6 +22,6 @@ fn main() -> io::Result<()> {
     }
 
     let mut lexer = Lexer::new(source_code);
-    lexer.tokenize();
+    let tokens = lexer.tokenize();
     Ok(())
 }
