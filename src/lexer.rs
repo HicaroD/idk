@@ -4,8 +4,17 @@ pub enum Token {
     Keyword(KeywordId),
     Operator(OperatorId), 
     RelOperator(RelOperatorId),
+    UnaryOperator(UnaryOperatorId)
     Number(String),
     Identifier(String),
+}
+
+#[derive(Debug, Clone)]
+enum UnaryOperatorId {
+    Minus,
+    Increment,
+    Decrement,
+    Not,
 }
 
 #[derive(Debug, Clone)]
