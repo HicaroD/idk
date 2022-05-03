@@ -36,8 +36,10 @@ pub enum SpecialCharId {
     Colon,
     OpeningPar,
     OpeningCurly,
+    OpeningBracket,
     ClosingPar,
     ClosingCurly,
+    ClosingBracket,
     Semicolon,
     EqualSign,
 }
@@ -153,6 +155,10 @@ impl Lexer {
             '}' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::ClosingCurly)),
 
             ';' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::Semicolon)),
+
+            '[' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::OpeningBracket)),
+
+            ']' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::ClosingBracket)),
 
             '=' => {
                 self.advance();
