@@ -5,8 +5,22 @@ pub enum Token {
     Operator(OperatorId), 
     RelOperator(RelOperatorId),
     UnaryOperator(UnaryOperatorId),
+    BitwiseOperator(BitwiseOperatorId),
+    LogicOperator(LogicOperatorId),
     Number(String),
     Identifier(String),
+}
+
+#[derive(Debug, Clone)]
+enum BitwiseOperatorId {
+    And, // &
+    Or,  // |
+}
+
+#[derive(Debug, Clone)]
+enum LogicOperatorId {
+    And, // &&
+    Or,  // ||
 }
 
 #[derive(Debug, Clone)]
@@ -186,6 +200,24 @@ impl Lexer {
                     return self.consume_and_advance(Token::RelOperator(RelOperatorId::NotEqual));
                 }
                 return self.consume_and_advance(Token::UnaryOperator(UnaryOperatorId::Not));
+            }
+
+            '|' => {
+                self.advance();
+
+                if self.current_char == '|' {
+                    return self.consume_and_advance(Token::LogicOperator(LogicOperatorId::Or));
+                }
+                return self.consume_and_advance(Token::BitwiseOperator(BitwiseOperatorId::Or));
+            }
+
+            '&' => {
+                self.advance();
+
+                if self.current_char == '&' {
+                    return self.consume_and_advance(Token::LogicOperator(LogicOperatorId::And));
+                }
+                return self.consume_and_advance(Token::BitwiseOperator(BitwiseOperatorId::And));
             }
 
             '/'  => self.consume_and_advance(Token::Operator(OperatorId::Divides)),
