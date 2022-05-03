@@ -23,5 +23,9 @@ fn main() -> io::Result<()> {
 
     let mut lexer = Lexer::new(source_code);
     let tokens = lexer.tokenize();
+
+    for token in tokens.iter() {
+        println!("{:?}", token);
+    }
     Ok(())
 }
