@@ -12,19 +12,19 @@ pub enum Token {
 }
 
 #[derive(Debug, Clone)]
-enum BitwiseOperatorId {
+pub enum BitwiseOperatorId {
     And, // &
     Or,  // |
 }
 
 #[derive(Debug, Clone)]
-enum LogicOperatorId {
+pub enum LogicOperatorId {
     And, // &&
     Or,  // ||
 }
 
 #[derive(Debug, Clone)]
-enum UnaryOperatorId {
+pub enum UnaryOperatorId {
     Minus,      // -
     Increment,  // ++
     Decrement,  // --
@@ -32,7 +32,7 @@ enum UnaryOperatorId {
 }
 
 #[derive(Debug, Clone)]
-enum SpecialCharId {
+pub enum SpecialCharId {
     Colon,
     OpeningPar,
     OpeningCurly,
@@ -43,7 +43,7 @@ enum SpecialCharId {
 }
 
 #[derive(Debug, Clone)]
-enum KeywordId {
+pub enum KeywordId {
     Def,
     If,
     Elif, // Else if
@@ -52,7 +52,7 @@ enum KeywordId {
 }
 
 #[derive(Debug, Clone)]
-enum OperatorId {
+pub enum OperatorId {
     Plus,
     Minus,
     Mod,
@@ -61,7 +61,7 @@ enum OperatorId {
 }
 
 #[derive(Debug, Clone)]
-enum RelOperatorId {
+pub enum RelOperatorId {
     GreaterThan,
     LessThan,
     GreaterThanOrEqual,
@@ -101,6 +101,17 @@ impl Lexer {
     fn consume_and_advance(&mut self, token: Token) -> Token {
         self.advance();
         token
+    }
+
+    fn classify_identifier(&self, identifier: &str) -> Token {
+        match identifier {
+            "def" => Token::Keyword(KeywordId::Def),
+            "if" => Token::Keyword(KeywordId::If),
+            "elif" => Token::Keyword(KeywordId::Elif),
+            "else" => Token::Keyword(KeywordId::Else),
+            "return" => Token::Keyword(KeywordId::Return),
+            _ => Token::Identifier(identifier.to_string()),
+        }
     }
 
     fn get_token(&mut self) -> Token {
@@ -241,14 +252,7 @@ impl Lexer {
             let token = self.get_token();
 
             if let Token::Identifier(ref ident) = token {
-                match ident.as_str() {
-                    "def" => tokens.push(Token::Keyword(KeywordId::Def)),
-                    "if" => tokens.push(Token::Keyword(KeywordId::If)),
-                    "elif" => tokens.push(Token::Keyword(KeywordId::Elif)),
-                    "else" => tokens.push(Token::Keyword(KeywordId::Else)),
-                    "return" => tokens.push(Token::Keyword(KeywordId::Return)),
-                    _ => tokens.push(token.clone()),
-                }
+                tokens.push(self.classify_identifier(ident));
             } else {
                 tokens.push(token);
             }
@@ -258,10 +262,6 @@ impl Lexer {
                 break;
             }
         }
-        for token in tokens.iter() {
-            println!("{:?}", token);
-        }
-
         return tokens;
     }
 }
