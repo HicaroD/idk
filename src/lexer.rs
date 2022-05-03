@@ -4,17 +4,17 @@ pub enum Token {
     Keyword(KeywordId),
     Operator(OperatorId), 
     RelOperator(RelOperatorId),
-    UnaryOperator(UnaryOperatorId)
+    UnaryOperator(UnaryOperatorId),
     Number(String),
     Identifier(String),
 }
 
 #[derive(Debug, Clone)]
 enum UnaryOperatorId {
-    Minus,
-    Increment,
-    Decrement,
-    Not,
+    Minus,      // -
+    Increment,  // ++
+    Decrement,  // --
+    Not,        // !
 }
 
 #[derive(Debug, Clone)]
@@ -49,7 +49,7 @@ enum OperatorId {
 #[derive(Debug, Clone)]
 enum RelOperatorId {
     GreaterThan,
-    LesserThan,
+    LessThan,
     GreaterThanOrEqual,
     LessThanOrEqual,
     NotEqual, // !=
@@ -129,15 +129,64 @@ impl Lexer {
 
             ';' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::Semicolon)),
 
-            '=' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::EqualSign)),
+            '=' => {
+                self.advance();
 
-            '>' => self.consume_and_advance(Token::RelOperator(RelOperatorId::GreaterThan)),
+                if self.current_char == '=' {
+                    return self.consume_and_advance(Token::RelOperator(RelOperatorId::EqualTo));
+                }
 
-            '<' => self.consume_and_advance(Token::RelOperator(RelOperatorId::LesserThan)),
+                return self.consume_and_advance(Token::SpecialChar(SpecialCharId::EqualSign));
+            }
 
-            '+'  => self.consume_and_advance(Token::Operator(OperatorId::Plus)),
+            '>' => {
+                self.advance();
+                
+                if self.current_char == '=' {
+                    return self.consume_and_advance(Token::RelOperator(RelOperatorId::GreaterThanOrEqual));
+                }
 
-            '-'  => self.consume_and_advance(Token::Operator(OperatorId::Minus)),
+                return self.consume_and_advance(Token::RelOperator(RelOperatorId::GreaterThan));
+            }
+
+            '<' => {
+                self.advance();
+                
+                if self.current_char == '=' {
+                    return self.consume_and_advance(Token::RelOperator(RelOperatorId::LessThanOrEqual));
+                }
+
+                return self.consume_and_advance(Token::RelOperator(RelOperatorId::LessThan));
+            }
+
+            '+'  => {
+                self.advance();
+
+                if self.current_char == '+' {
+                    return self.consume_and_advance(Token::UnaryOperator(UnaryOperatorId::Increment));
+                }
+
+                return self.consume_and_advance(Token::Operator(OperatorId::Plus));
+            }
+
+            '-'  => {
+                self.advance();
+
+                if self.current_char == '-' {
+                    return self.consume_and_advance(Token::UnaryOperator(UnaryOperatorId::Decrement));
+                }
+
+                return self.consume_and_advance(Token::Operator(OperatorId::Minus));
+            }
+
+            '!' => {
+                self.advance();
+
+                if self.current_char == '=' {
+                    return self.consume_and_advance(Token::RelOperator(RelOperatorId::NotEqual));
+                }
+                return self.consume_and_advance(Token::UnaryOperator(UnaryOperatorId::Not));
+            }
 
             '/'  => self.consume_and_advance(Token::Operator(OperatorId::Divides)),
 
