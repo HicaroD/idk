@@ -1,7 +1,7 @@
 mod lexer;
 
 use lexer::Lexer;
-use std::{env, fs, io};
+use std::{env, fs, io, path::Path};
 
 fn get_source_code(path: String) -> io::Result<Vec<char>> {
     return Ok(fs::read_to_string(path)?.chars().collect::<Vec<char>>());
@@ -12,6 +12,11 @@ fn main() -> io::Result<()> {
 
     if args.len() < 2 {
         eprintln!("Error: No input files");
+        std::process::exit(1);
+    }
+
+    if !Path::new(&args[1]).exists() {
+        eprintln!("Error: No such file or directory");
         std::process::exit(1);
     }
 
