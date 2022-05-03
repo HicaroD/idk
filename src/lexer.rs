@@ -161,7 +161,7 @@ impl Lexer {
                     return self.consume_and_advance(Token::RelOperator(RelOperatorId::EqualTo));
                 }
 
-                return self.consume_and_advance(Token::SpecialChar(SpecialCharId::EqualSign));
+                return Token::SpecialChar(SpecialCharId::EqualSign);
             }
 
             '>' => {
@@ -171,7 +171,7 @@ impl Lexer {
                     return self.consume_and_advance(Token::RelOperator(RelOperatorId::GreaterThanOrEqual));
                 }
 
-                return self.consume_and_advance(Token::RelOperator(RelOperatorId::GreaterThan));
+                return Token::RelOperator(RelOperatorId::GreaterThan);
             }
 
             '<' => {
@@ -181,7 +181,7 @@ impl Lexer {
                     return self.consume_and_advance(Token::RelOperator(RelOperatorId::LessThanOrEqual));
                 }
 
-                return self.consume_and_advance(Token::RelOperator(RelOperatorId::LessThan));
+                return Token::RelOperator(RelOperatorId::LessThan);
             }
 
             '+'  => {
@@ -191,7 +191,7 @@ impl Lexer {
                     return self.consume_and_advance(Token::UnaryOperator(UnaryOperatorId::Increment));
                 }
 
-                return self.consume_and_advance(Token::Operator(OperatorId::Plus));
+                return Token::Operator(OperatorId::Plus);
             }
 
             '-'  => {
@@ -200,8 +200,7 @@ impl Lexer {
                 if self.current_char == '-' {
                     return self.consume_and_advance(Token::UnaryOperator(UnaryOperatorId::Decrement));
                 }
-
-                return self.consume_and_advance(Token::Operator(OperatorId::Minus));
+                return Token::Operator(OperatorId::Minus);
             }
 
             '!' => {
@@ -210,7 +209,7 @@ impl Lexer {
                 if self.current_char == '=' {
                     return self.consume_and_advance(Token::RelOperator(RelOperatorId::NotEqual));
                 }
-                return self.consume_and_advance(Token::UnaryOperator(UnaryOperatorId::Not));
+                return Token::UnaryOperator(UnaryOperatorId::Not);
             }
 
             '|' => {
@@ -219,7 +218,7 @@ impl Lexer {
                 if self.current_char == '|' {
                     return self.consume_and_advance(Token::LogicOperator(LogicOperatorId::Or));
                 }
-                return self.consume_and_advance(Token::BitwiseOperator(BitwiseOperatorId::Or));
+                return Token::BitwiseOperator(BitwiseOperatorId::Or);
             }
 
             '&' => {
@@ -228,7 +227,7 @@ impl Lexer {
                 if self.current_char == '&' {
                     return self.consume_and_advance(Token::LogicOperator(LogicOperatorId::And));
                 }
-                return self.consume_and_advance(Token::BitwiseOperator(BitwiseOperatorId::And));
+                return Token::BitwiseOperator(BitwiseOperatorId::And);
             }
 
             '/'  => self.consume_and_advance(Token::Operator(OperatorId::Divides)),
