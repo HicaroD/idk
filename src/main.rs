@@ -1,7 +1,7 @@
 mod lexer;
 
 use lexer::Lexer;
-use std::{env, fs, io};
+use std::{env, fs, io, path::Path};
 
 fn get_source_code(path: String) -> io::Result<Vec<char>> {
     return Ok(fs::read_to_string(path)?.chars().collect::<Vec<char>>());
@@ -15,6 +15,11 @@ fn main() -> io::Result<()> {
         std::process::exit(1);
     }
 
+    if !Path::new(&args[1]).exists() {
+        eprintln!("Error: No such file or directory");
+        std::process::exit(1);
+    }
+
     let source_code = get_source_code(args[1].clone())?;
 
     if source_code.len() == 0 {
@@ -23,5 +28,9 @@ fn main() -> io::Result<()> {
 
     let mut lexer = Lexer::new(source_code);
     let tokens = lexer.tokenize();
+
+    for token in tokens.iter() {
+        println!("{:?}", token);
+    }
     Ok(())
 }

@@ -4,32 +4,48 @@ pub enum Token {
     Keyword(KeywordId),
     Operator(OperatorId), 
     RelOperator(RelOperatorId),
-    UnaryOperator(UnaryOperatorId)
+    UnaryOperator(UnaryOperatorId),
+    BitwiseOperator(BitwiseOperatorId),
+    LogicOperator(LogicOperatorId),
     Number(String),
     Identifier(String),
 }
 
 #[derive(Debug, Clone)]
-enum UnaryOperatorId {
-    Minus,
-    Increment,
-    Decrement,
-    Not,
+pub enum BitwiseOperatorId {
+    And, // &
+    Or,  // |
 }
 
 #[derive(Debug, Clone)]
-enum SpecialCharId {
+pub enum LogicOperatorId {
+    And, // &&
+    Or,  // ||
+}
+
+#[derive(Debug, Clone)]
+pub enum UnaryOperatorId {
+    Minus,      // -
+    Increment,  // ++
+    Decrement,  // --
+    Not,        // !
+}
+
+#[derive(Debug, Clone)]
+pub enum SpecialCharId {
     Colon,
     OpeningPar,
     OpeningCurly,
+    OpeningBracket,
     ClosingPar,
     ClosingCurly,
+    ClosingBracket,
     Semicolon,
     EqualSign,
 }
 
 #[derive(Debug, Clone)]
-enum KeywordId {
+pub enum KeywordId {
     Def,
     If,
     Elif, // Else if
@@ -38,7 +54,7 @@ enum KeywordId {
 }
 
 #[derive(Debug, Clone)]
-enum OperatorId {
+pub enum OperatorId {
     Plus,
     Minus,
     Mod,
@@ -47,9 +63,9 @@ enum OperatorId {
 }
 
 #[derive(Debug, Clone)]
-enum RelOperatorId {
+pub enum RelOperatorId {
     GreaterThan,
-    LesserThan,
+    LessThan,
     GreaterThanOrEqual,
     LessThanOrEqual,
     NotEqual, // !=
@@ -87,6 +103,17 @@ impl Lexer {
     fn consume_and_advance(&mut self, token: Token) -> Token {
         self.advance();
         token
+    }
+
+    fn classify_identifier(&self, identifier: &str) -> Token {
+        match identifier {
+            "def" => Token::Keyword(KeywordId::Def),
+            "if" => Token::Keyword(KeywordId::If),
+            "elif" => Token::Keyword(KeywordId::Elif),
+            "else" => Token::Keyword(KeywordId::Else),
+            "return" => Token::Keyword(KeywordId::Return),
+            _ => Token::Identifier(identifier.to_string()),
+        }
     }
 
     fn get_token(&mut self) -> Token {
@@ -129,15 +156,85 @@ impl Lexer {
 
             ';' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::Semicolon)),
 
-            '=' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::EqualSign)),
+            '[' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::OpeningBracket)),
 
-            '>' => self.consume_and_advance(Token::RelOperator(RelOperatorId::GreaterThan)),
+            ']' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::ClosingBracket)),
 
-            '<' => self.consume_and_advance(Token::RelOperator(RelOperatorId::LesserThan)),
+            '=' => {
+                self.advance();
 
-            '+'  => self.consume_and_advance(Token::Operator(OperatorId::Plus)),
+                if self.current_char == '=' {
+                    return self.consume_and_advance(Token::RelOperator(RelOperatorId::EqualTo));
+                }
 
-            '-'  => self.consume_and_advance(Token::Operator(OperatorId::Minus)),
+                return Token::SpecialChar(SpecialCharId::EqualSign);
+            }
+
+            '>' => {
+                self.advance();
+                
+                if self.current_char == '=' {
+                    return self.consume_and_advance(Token::RelOperator(RelOperatorId::GreaterThanOrEqual));
+                }
+
+                return Token::RelOperator(RelOperatorId::GreaterThan);
+            }
+
+            '<' => {
+                self.advance();
+                
+                if self.current_char == '=' {
+                    return self.consume_and_advance(Token::RelOperator(RelOperatorId::LessThanOrEqual));
+                }
+
+                return Token::RelOperator(RelOperatorId::LessThan);
+            }
+
+            '+'  => {
+                self.advance();
+
+                if self.current_char == '+' {
+                    return self.consume_and_advance(Token::UnaryOperator(UnaryOperatorId::Increment));
+                }
+
+                return Token::Operator(OperatorId::Plus);
+            }
+
+            '-'  => {
+                self.advance();
+
+                if self.current_char == '-' {
+                    return self.consume_and_advance(Token::UnaryOperator(UnaryOperatorId::Decrement));
+                }
+                return Token::Operator(OperatorId::Minus);
+            }
+
+            '!' => {
+                self.advance();
+
+                if self.current_char == '=' {
+                    return self.consume_and_advance(Token::RelOperator(RelOperatorId::NotEqual));
+                }
+                return Token::UnaryOperator(UnaryOperatorId::Not);
+            }
+
+            '|' => {
+                self.advance();
+
+                if self.current_char == '|' {
+                    return self.consume_and_advance(Token::LogicOperator(LogicOperatorId::Or));
+                }
+                return Token::BitwiseOperator(BitwiseOperatorId::Or);
+            }
+
+            '&' => {
+                self.advance();
+
+                if self.current_char == '&' {
+                    return self.consume_and_advance(Token::LogicOperator(LogicOperatorId::And));
+                }
+                return Token::BitwiseOperator(BitwiseOperatorId::And);
+            }
 
             '/'  => self.consume_and_advance(Token::Operator(OperatorId::Divides)),
 
@@ -160,14 +257,7 @@ impl Lexer {
             let token = self.get_token();
 
             if let Token::Identifier(ref ident) = token {
-                match ident.as_str() {
-                    "def" => tokens.push(Token::Keyword(KeywordId::Def)),
-                    "if" => tokens.push(Token::Keyword(KeywordId::If)),
-                    "elif" => tokens.push(Token::Keyword(KeywordId::Elif)),
-                    "else" => tokens.push(Token::Keyword(KeywordId::Else)),
-                    "return" => tokens.push(Token::Keyword(KeywordId::Return)),
-                    _ => tokens.push(token.clone()),
-                }
+                tokens.push(self.classify_identifier(ident));
             } else {
                 tokens.push(token);
             }
@@ -177,10 +267,6 @@ impl Lexer {
                 break;
             }
         }
-        for token in tokens.iter() {
-            println!("{:?}", token);
-        }
-
         return tokens;
     }
 }
