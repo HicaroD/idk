@@ -15,7 +15,8 @@ fn main() -> io::Result<()> {
         std::process::exit(1);
     }
 
-    if !Path::new(&args[1]).exists() {
+    let path = Path::new(&args[1]);
+    if !path.exists() {
         eprintln!("Error: No such file or directory");
         std::process::exit(1);
     }
