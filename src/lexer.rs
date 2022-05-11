@@ -76,6 +76,7 @@ pub struct Lexer {
     source_code: Vec<char>,
     position: usize,
     current_char: char,
+    is_end_of_file: bool,
 }
 
 impl Lexer {
@@ -84,6 +85,7 @@ impl Lexer {
             source_code,
             position: 0,
             current_char: '0',
+            is_end_of_file: false,
         }
     }
 
@@ -91,6 +93,9 @@ impl Lexer {
         if self.position < self.source_code.len() {
             self.current_char = self.source_code[self.position];
             self.position += 1;
+        }
+        if self.position == self.source_code.len() {
+            self.is_end_of_file = true;
         }
     }
 
@@ -262,8 +267,7 @@ impl Lexer {
                 tokens.push(token);
             }
 
-            // TODO(Hícaro): Improve the condition to break the tokenizer loop
-            if self.position == self.source_code.len() {
+            if self.is_end_of_file {
                 break;
             }
         }
