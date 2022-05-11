@@ -1,4 +1,4 @@
-<type_assign> = "int" | "float" | "bool"
+<type_assign> = "int" | "float" | "bool" ;
 
 <alphanum>    = <digit> | <letter> ;
 
@@ -15,4 +15,4 @@
               | "q" | "r" | "s" | "t" | "u" | "v" | "w"
               | "x" | "y" | "z" ;
  
-<whitespace>  = ? ASCII character 32 ?;
+<whitespace>  = ? ASCII character 32 ? ;
