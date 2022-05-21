@@ -1,4 +1,6 @@
 CXX = g++
+CXXFLAGS = -Wall -Werror -Wextra -Wpedantic
+TARGET = idk
 
 run: src/main.cpp src/idk/* ;
-	g++ -I src/ src/main.cpp src/lexer.cpp
+	g++ ${CXXFLAGS} -I src/ src/main.cpp src/lexer.cpp -o ${TARGET}
