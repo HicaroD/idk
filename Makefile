@@ -1,7 +1,8 @@
-CXX = g++
-CXXFLAGS = -Wall -Werror -Wextra -Wpedantic -I src/
-TARGET = idk
-SRC    = src/*.cpp
+CXX      = g++
+INCLUDE  = src/idk/*
+TARGET   = idk
+SRC      = src/*.cpp
+CXXFLAGS = -Wall -Werror -Wextra -Wpedantic -I src/ -o ${TARGET}
 
-run: src/main.cpp src/idk/* ;
-	g++ ${CXXFLAGS} ${SRC} -o ${TARGET}
+${TARGET}: ${INCLUDE} ${SRC} ;
+	${CXX} ${CXXFLAGS} ${SRC}
