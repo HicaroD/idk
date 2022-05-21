@@ -29,7 +29,7 @@ struct Variable : ASTNode {
 struct Function : ASTNode {
     std::string return_type;
     std::string name;
-    std::vector<Parameter> parameters;
+    std::vector<Parameter*> parameters;
     // TODO: Declare the body of the function
 };
 
