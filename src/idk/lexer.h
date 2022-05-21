@@ -2,6 +2,35 @@
 #define LEXER_H
 
 #include <vector>
+#include <string>
+
+enum class TokenType {
+    // Keywords
+    Def,
+    Return,
+
+    Identifier,
+
+    // Special characters
+    Parenthesis,
+    CurlyBraces,
+    EqualSign,
+    Semicolon,
+    Colon,
+    Comma,
+
+    // Operators
+    Plus,
+    Minus,
+};
+
+struct Token {
+    TokenType type;
+    std::string id;
+};
+
+Token new_token(TokenType type, std::string id);
+Token classify_identifier(std::string identifier);
 
 class Lexer {
     private:
@@ -15,6 +44,9 @@ class Lexer {
 	char get_current_char();
 	void advance();
 	bool is_eof();
+	void skip_whitespace();
+	std::vector<Token> tokenize();
+	std::string get_identifier();
 };
 
 #endif
