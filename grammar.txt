@@ -1,3 +1,14 @@
+<expression>  = ["+"|"-"] <term> { ("+"|"-") <term> } ;
+
+<term>        = <factor> { ("*"|"/") <factor> } ;
+
+<factor>      =
+		<identifier>
+    		| <number>
+    		| "(" <expression> ")" ;
+
+<identifier>  = <letter> { alphanum | "_" } ;
+
 <type_assign> = "int" | "float" | "bool" ;
 
 <alphanum>    = <digit> | <letter> ;
