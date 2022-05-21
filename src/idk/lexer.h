@@ -42,7 +42,6 @@ class Lexer {
     public:
 	Lexer(const std::vector<char>& source);
 
-	char get_current_char();
 	void advance();
 	bool is_eof();
 	void skip_whitespace();
@@ -52,4 +51,4 @@ class Lexer {
 	std::string get_number();
 };
 
-#endif
+#endif // LEXER_H
