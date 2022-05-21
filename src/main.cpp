@@ -1,4 +1,5 @@
 #include <idk/lexer.h>
+#include <idk/parser.h>
 
 #include <iostream>
 #include <cstdlib>
