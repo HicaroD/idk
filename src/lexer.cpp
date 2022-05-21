@@ -66,7 +66,6 @@ std::string Lexer::get_identifier() {
 
     advance();
     while((isalnum(current_char) || current_char == '_')) {
-	std::cout << "Current char: " << current_char << std::endl;
 	identifier += current_char;
 	advance();
     }
