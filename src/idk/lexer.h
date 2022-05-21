@@ -26,6 +26,9 @@ enum class TokenType {
     // Operators
     Plus,
     Minus,
+    Mod,
+    Divides,
+    Times,
 };
 
 struct Token {
