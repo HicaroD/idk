@@ -10,6 +10,7 @@ enum class TokenType {
     Return,
 
     Identifier,
+    Number,
 
     // Special characters
     Parenthesis,
@@ -45,8 +46,10 @@ class Lexer {
 	void advance();
 	bool is_eof();
 	void skip_whitespace();
+	void consume(Token token, std::vector<Token>& tokens);
 	std::vector<Token> tokenize();
 	std::string get_identifier();
+	std::string get_number();
 };
 
 #endif
