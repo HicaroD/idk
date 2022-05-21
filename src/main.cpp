@@ -31,6 +31,10 @@ int main(int argc, char **argv) {
     std::string filename = argv[1];
     std::vector<char> source_code = read_source_code(filename);
 
+    if(source_code.empty()) {
+	exit(1);
+    }
+
     Lexer* lexer = new Lexer(source_code);
     lexer->advance();
 

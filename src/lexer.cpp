@@ -40,9 +40,7 @@ void Lexer::skip_whitespace() {
 }
 
 void Lexer::advance() {
-    if(source_code.empty()) {
-	exit(1);
-    } else if(!is_eof()) {
+    if(!is_eof()) {
 	current_char = source_code[position++];
     }
 }
@@ -129,7 +127,7 @@ std::vector<Token> Lexer::tokenize() {
 
 	} else if(current_char == '/') {
 	    consume(new_token(TokenType::Divides, token), tokens);
- 
+
 	} else if(current_char == '*') {
 	    consume(new_token(TokenType::Times, token), tokens);
 
