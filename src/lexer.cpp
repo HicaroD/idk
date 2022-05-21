@@ -86,10 +86,6 @@ std::vector<Token> Lexer::tokenize() {
     while(!is_eof()) {
 	skip_whitespace();
 
-	// TODO: Refactoring
-	//       - This conversion of token to string is terrible
-	//       - Could I simplify these if statements?
-
 	std::string token;
 	token = current_char;
 
@@ -106,9 +102,8 @@ std::vector<Token> Lexer::tokenize() {
 
 	} else if(current_char == '(' || current_char == ')') {
 	    consume(new_token(TokenType::Parenthesis, token), tokens);
-	}
 
-	else if(current_char == '{' || current_char == '}') {
+	} else if(current_char == '{' || current_char == '}') {
 	    consume(new_token(TokenType::CurlyBraces, token), tokens);
 
 	} else if(current_char == '[' || current_char == ']') {
