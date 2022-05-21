@@ -33,9 +33,9 @@ int main(int argc, char **argv) {
     Lexer* lexer = new Lexer(source_code);
     lexer->advance();
 
-    while(!lexer->is_eof()) {
-	std::cout << lexer->get_current_char() << std::endl;
-	lexer->advance();
+    std::vector<Token> tokens = lexer->tokenize();
+    for(Token token: tokens) {
+	std::cout << token.id << std::endl;
     }
 
     delete lexer;
