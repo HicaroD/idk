@@ -26,7 +26,7 @@ std::vector<char> read_source_code(std::string filename) {
 int main(int argc, char **argv) {
     if(argc < 2) {
 	std::cerr << "Error: No input file" << std::endl;
-	return 1;
+	exit(1);
     }
 
     std::string filename = argv[1];
