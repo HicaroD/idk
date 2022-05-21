@@ -132,13 +132,13 @@ std::vector<Token> Lexer::tokenize() {
 	} else if(current_char == '-') {
 	    consume(new_token(TokenType::Minus, token), tokens);
 
-	} else if(current_char == "/") {
+	} else if(current_char == '/') {
 	    consume(new_token(TokenType::Divides, token), tokens);
  
-	} else if(current_char == "*") {
+	} else if(current_char == '*') {
 	    consume(new_token(TokenType::Times, token), tokens);
 
-	} else if(current_char == "%") {
+	} else if(current_char == '%') {
 	    consume(new_token(TokenType::Mod, token), tokens);
 
 	} else {
