@@ -18,6 +18,7 @@ enum class TokenType {
     // Special characters
     Parenthesis,
     CurlyBraces,
+    Brackets,
     EqualSign,
     Semicolon,
     Colon,

@@ -112,7 +112,7 @@ std::vector<Token> Lexer::tokenize() {
 	    consume(new_token(TokenType::CurlyBraces, token), tokens);
 
 	} else if(current_char == '[' || current_char == ']') {
-	    consume(new_token(TokenType::Parenthesis, token), tokens);
+	    consume(new_token(TokenType::Brackets, token), tokens);
 
 	} else if(current_char == '=') {
 	    consume(new_token(TokenType::EqualSign, token), tokens);
