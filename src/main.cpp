@@ -1,8 +1,9 @@
+#include <idk/lexer.h>
+
 #include <iostream>
 #include <cstdlib>
 #include <fstream>
 #include <string>
-#include <idk/lexer.h>
 
 std::vector<char> read_source_code(std::string filename) {
     std::vector<char> source_code;
