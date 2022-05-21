@@ -1,5 +1,6 @@
-#include <iostream>
 #include <idk/lexer.h>
+
+#include <iostream>
 #include <cstdlib>
 #include <cctype>
 #include <vector>
