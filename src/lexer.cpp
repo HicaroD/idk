@@ -10,9 +10,7 @@ Lexer::Lexer(const std::vector<char>& source) {
     position = 0;
 }
 
-Token new_token(TokenType type, std::string id) {
-    return Token { type, id };
-}
+Token new_token(TokenType type, std::string id) { return Token { type, id }; }
 
 Token classify_identifier(std::string identifier) {
     if(identifier.compare("def") == 0) {
@@ -39,13 +37,7 @@ void Lexer::advance() {
     }
 }
 
-bool Lexer::is_eof() {
-    return position == int(source_code.size());
-}
-
-char Lexer::get_current_char() {
-    return current_char;
-}
+bool Lexer::is_eof() { return position == int(source_code.size()); }
 
 std::string Lexer::get_number() {
     std::string number;
@@ -94,7 +86,6 @@ std::vector<Token> Lexer::tokenize() {
 	std::cout << "Current char: " << current_char << std::endl;
 
 	if(isalpha(current_char)) {
-	    std::cout << "getting identifier" << std::endl;
 	    std::string identifier = get_identifier();
 	    Token token = classify_identifier(identifier);
 	    tokens.push_back(token);
