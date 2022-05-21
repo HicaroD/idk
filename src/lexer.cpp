@@ -1,5 +1,6 @@
 #include <iostream>
 #include <idk/lexer.h>
+#include <cstdlib>
 #include <vector>
 
 Lexer::Lexer(const std::vector<char>& source) {
@@ -10,7 +11,9 @@ Lexer::Lexer(const std::vector<char>& source) {
 }
 
 void Lexer::advance() {
-    if(position + 1 == int(source_code.size())) {
+    if(source_code.empty()) {
+	exit(1);
+    } else if(position + 1 == int(source_code.size())) {
 	set_eof();
     } else {
 	current_char = source_code[position++];

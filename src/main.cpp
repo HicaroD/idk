@@ -31,6 +31,7 @@ int main(int argc, char **argv) {
     std::vector<char> source_code = read_source_code(filename);
 
     Lexer* lexer = new Lexer(source_code);
+    lexer->advance();
 
     while(!lexer->is_eof()) {
 	std::cout << lexer->get_current_char() << std::endl;
