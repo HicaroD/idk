@@ -19,6 +19,15 @@ Token classify_identifier(std::string identifier) {
 
     } else if(identifier.compare("return") == 0) {
 	return new_token(TokenType::Return, identifier);
+
+    } else if(identifier.compare("if") == 0) {
+	return new_token(TokenType::If, identifier);
+
+    } else if(identifier.compare("elif") == 0) {
+	return new_token(TokenType::Elif, identifier);
+
+    } else if(identifier.compare("else") == 0) {
+	return new_token(TokenType::Else, identifier);
     }
 
     return new_token(TokenType::Identifier, identifier);
