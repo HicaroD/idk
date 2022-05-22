@@ -4,6 +4,7 @@
 #include <idk/lexer.h>
 
 #include <vector>
+#include <string>
 
 enum class Type {
     Int,
