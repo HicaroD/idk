@@ -1,9 +1,9 @@
-#include <idk/lexer.h>
-
 #include <iostream>
 #include <cstdlib>
 #include <cctype>
 #include <vector>
+
+#include "idk/lexer.h"
 
 Lexer::Lexer(const std::vector<char>& source) {
     source_code = source;
