@@ -97,45 +97,63 @@ std::vector<Token> Lexer::tokenize() {
 	    std::string number = get_number();
 	    tokens.push_back(new_token(TokenType::Number, number));
 
-	} else if(current_char == '(' || current_char == ')') {
-	    consume(new_token(TokenType::Parenthesis, token), tokens);
-
-	} else if(current_char == '{' || current_char == '}') {
-	    consume(new_token(TokenType::CurlyBraces, token), tokens);
-
-	} else if(current_char == '[' || current_char == ']') {
-	    consume(new_token(TokenType::Brackets, token), tokens);
-
-	} else if(current_char == '=') {
-	    consume(new_token(TokenType::EqualSign, token), tokens);
-
-	} else if(current_char == ':') {
-	    consume(new_token(TokenType::Colon, token), tokens);
-
-	} else if(current_char == ';') {
-	    consume(new_token(TokenType::Semicolon, token), tokens);
-
-	} else if(current_char == ',') {
-	    consume(new_token(TokenType::Comma, token), tokens);
-
-	} else if(current_char == '+') {
-	    consume(new_token(TokenType::Plus, token), tokens);
-
-	} else if(current_char == '-') {
-	    consume(new_token(TokenType::Minus, token), tokens);
-
-	} else if(current_char == '/') {
-	    consume(new_token(TokenType::Divides, token), tokens);
-
-	} else if(current_char == '*') {
-	    consume(new_token(TokenType::Times, token), tokens);
-
-	} else if(current_char == '%') {
-	    consume(new_token(TokenType::Mod, token), tokens);
-
 	} else {
-	    std::cerr << "Invalid token: \'" << token << "\'" << std::endl;
-	    exit(1);
+	    switch(current_char) {
+		case '(':
+		case ')':
+		    consume(new_token(TokenType::Parenthesis, token), tokens);
+		    break;
+
+		case '{':
+		case '}':
+		    consume(new_token(TokenType::CurlyBraces, token), tokens);
+		    break;
+
+		case '[':
+		case ']':
+		    consume(new_token(TokenType::Brackets, token), tokens);
+		    break;
+
+		case '=':
+		    consume(new_token(TokenType::EqualSign, token), tokens);
+		    break;
+
+		case ':':
+		    consume(new_token(TokenType::Colon, token), tokens);
+		    break;
+
+		case ';':
+		    consume(new_token(TokenType::Semicolon, token), tokens);
+		    break;
+
+		case ',':
+		    consume(new_token(TokenType::Comma, token), tokens);
+		    break;
+
+		case '+':
+		    consume(new_token(TokenType::Plus, token), tokens);
+		    break;
+
+		case '-':
+		    consume(new_token(TokenType::Minus, token), tokens);
+		    break; 
+
+		case '/':
+		    consume(new_token(TokenType::Divides, token), tokens);
+		    break;
+
+		case '*':
+		    consume(new_token(TokenType::Times, token), tokens);
+		    break;
+
+		case '%':
+		    consume(new_token(TokenType::Mod, token), tokens);
+		    break;
+
+		default:
+		    std::cerr << "Invalid token: \'" << token << "\'" << std::endl;
+		    exit(1);
+	    }
 	}
     }
 
