@@ -14,10 +14,6 @@ Lexer::Lexer(const std::vector<char> &source) {
 
 Token new_token(TokenType type, std::string id) { return Token{type, id}; }
 
-bool equals(std::string identifier, std::string keyword) {
-  return identifier.compare(keyword) == 0;
-}
-
 Token classify_identifier(std::string identifier) {
   std::unordered_map<std::string, TokenType> keywords = {
       {"def", TokenType::Def},     {"return", TokenType::Return},
