@@ -10,25 +10,14 @@ Parser::Parser(std::vector<Token> tokens_) {
   cursor = tokens.begin();
 }
 
-Variable new_variable(Type type, std::string name, Expression value) {
+Variable new_variable(TokenType type, std::string name, std::string value) {
   return Variable{{}, type, name, value};
 }
 
-NumberExpr new_number_expression(NumberKind kind, std::string value) {
-  return NumberExpr{{}, kind, value};
-}
-
-Expression Parser::parse_expression() {
-  if (cursor->type == TokenType::Number) {
-    return new_number_expression(cursor->kind, cursor->id);
-  } else {
-    std::cerr << "Invalid expression" << std::endl;
-    exit(1);
-  }
-}
-
 Variable Parser::parse_variable_assignment() {
+  TokenType variable_type = cursor->type;
   cursor++;
+
   if (cursor->type != TokenType::Identifier) {
     std::cerr << "Expected an identifier" << std::endl;
     exit(1);
@@ -42,20 +31,23 @@ Variable Parser::parse_variable_assignment() {
   }
   cursor++;
 
-  Expression value = parse_expression();
+  std::string value = cursor->id;
   cursor++;
 
   if (cursor->type != TokenType::Semicolon) {
     std::cerr << "Expected a ';' at the end of the statement" << std::endl;
     exit(1);
   }
-
-  return new_variable(Type::Float, variable_name, value);
+  cursor++;
+  return new_variable(variable_type, variable_name, value);
 }
 
 void Parser::generate_ast() {
-  if (cursor->type == TokenType::Float) {
-    Variable variable = parse_variable_assignment();
-    printf("float %s = %s;\n", variable.name.c_str(), variable.value.c_str());
+  while (cursor->type != TokenType::Eof) {
+    if (cursor->type == TokenType::Float || cursor->type == TokenType::Int) {
+      Variable variable = parse_variable_assignment();
+      printf("VARIABLE '%s' => %s ;\n", variable.name.c_str(),
+             variable.value.c_str());
+    }
   }
 }

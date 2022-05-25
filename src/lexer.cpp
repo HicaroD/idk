@@ -20,6 +20,7 @@ Token classify_identifier(std::string identifier) {
       {"if", TokenType::If},       {"elif", TokenType::Elif},
       {"else", TokenType::Else},   {"int", TokenType::Int},
       {"float", TokenType::Float}, {"bool", TokenType::Boolean},
+      {"true", TokenType::True},   {"false", TokenType::False},
   };
 
   if (keywords.contains(identifier)) {
@@ -43,7 +44,7 @@ void Lexer::advance() {
 
 bool Lexer::is_eof() { return position == int(source_code.size()); }
 
-Number Lexer::get_number() {
+Token Lexer::get_number() {
   std::string number;
   number += current_char;
   advance();
@@ -58,8 +59,8 @@ Number Lexer::get_number() {
     advance();
   }
 
-  return is_float ? Number{{TokenType::Number, number}, NumberKind::Float}
-                  : Number{{TokenType::Number, number}, NumberKind::Int};
+  return is_float ? new_token(TokenType::FloatNumber, number)
+                  : new_token(TokenType::IntNumber, number);
 }
 
 std::string Lexer::get_identifier() {
@@ -93,7 +94,7 @@ std::vector<Token> Lexer::tokenize() {
       Token token = classify_identifier(identifier);
       tokens.push_back(token);
     } else if (isdigit(current_char)) {
-      Number number = get_number();
+      Token number = get_number();
       tokens.push_back(number);
     } else {
       switch (current_char) {

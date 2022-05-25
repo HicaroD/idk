@@ -16,19 +16,13 @@ struct ASTNode {};
 struct Statement : ASTNode {};
 struct Expression : ASTNode {};
 
-struct NumberExpr : Expression {
-  NumberKind kind;
+struct Variable : ASTNode {
+  TokenType type;
+  std::string name;
   std::string value;
 };
 
-struct Variable : Statement {
-  Type type;
-  std::string name;
-  Expression value;
-};
-
-Variable new_variable(Type type, std::string name, std::string value);
-NumberExpr new_number_expression(NumberKind kind, std::string value);
+Variable new_variable(TokenType type, std::string name, std::string value);
 
 class Parser {
  private:

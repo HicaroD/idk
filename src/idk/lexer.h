@@ -11,9 +11,17 @@ enum class TokenType {
   If,
   Elif,
   Else,
+  Int,
+  Float,
+  Boolean,
 
   Identifier,
-  Number,
+
+  // Data types
+  FloatNumber,
+  IntNumber,
+  True,
+  False,
 
   // Special characters
   Parenthesis,
@@ -31,27 +39,12 @@ enum class TokenType {
   Divides,
   Times,
 
-  // Type
-  Int,
-  Float,
-  Boolean,
-
   Eof,
 };
 
 struct Token {
   TokenType type;
   std::string id;
-};
-
-enum class NumberKind {
-  Int,
-  Float,
-  Boolean,
-};
-
-struct Number : Token {
-  NumberKind kind;
 };
 
 Token new_token(TokenType type, std::string id);
@@ -72,7 +65,7 @@ class Lexer {
   void consume(Token token, std::vector<Token> &tokens);
   std::vector<Token> tokenize();
   std::string get_identifier();
-  Number get_number();
+  Token get_number();
 };
 
 #endif  // LEXER_H
