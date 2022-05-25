@@ -3,6 +3,7 @@
 #include <cctype>
 #include <cstdlib>
 #include <iostream>
+#include <unordered_map>
 #include <vector>
 
 Lexer::Lexer(const std::vector<char> &source) {
@@ -17,25 +18,16 @@ bool equals(std::string identifier, std::string keyword) {
   return identifier.compare(keyword) == 0;
 }
 
-// TODO: Refactor (lots of if statement)
-// I could create a hash table<string, TokenType>
 Token classify_identifier(std::string identifier) {
-  if (equals(identifier, "def")) {
-    return new_token(TokenType::Def, identifier);
-  } else if (equals(identifier, "return")) {
-    return new_token(TokenType::Return, identifier);
-  } else if (equals(identifier, "if")) {
-    return new_token(TokenType::If, identifier);
-  } else if (equals(identifier, "elif")) {
-    return new_token(TokenType::Elif, identifier);
-  } else if (equals(identifier, "else")) {
-    return new_token(TokenType::Else, identifier);
-  } else if (equals(identifier, "int")) {
-    return new_token(TokenType::Int, identifier);
-  } else if (equals(identifier, "float")) {
-    return new_token(TokenType::Float, identifier);
-  } else if (equals(identifier, "bool")) {
-    return new_token(TokenType::Boolean, identifier);
+  std::unordered_map<std::string, TokenType> keywords = {
+      {"def", TokenType::Def},     {"return", TokenType::Return},
+      {"if", TokenType::If},       {"elif", TokenType::Elif},
+      {"else", TokenType::Else},   {"int", TokenType::Int},
+      {"float", TokenType::Float}, {"bool", TokenType::Boolean},
+  };
+
+  if (keywords.contains(identifier)) {
+    return new_token(keywords[identifier], identifier);
   }
 
   return new_token(TokenType::Identifier, identifier);
