@@ -10,8 +10,21 @@ Parser::Parser(std::vector<Token> tokens_) {
   cursor = tokens.begin();
 }
 
-Variable new_variable(Type type, std::string name, std::string value) {
+Variable new_variable(Type type, std::string name, Expression value) {
   return Variable{{}, type, name, value};
+}
+
+NumberExpr new_number_expression(NumberKind kind, std::string value) {
+  return NumberExpr{{}, kind, value};
+}
+
+Expression Parser::parse_expression() {
+  if (cursor->type == TokenType::Number) {
+    return new_number_expression(cursor->kind, cursor->id);
+  } else {
+    std::cerr << "Invalid expression" << std::endl;
+    exit(1);
+  }
 }
 
 Variable Parser::parse_variable_assignment() {
@@ -29,11 +42,7 @@ Variable Parser::parse_variable_assignment() {
   }
   cursor++;
 
-  if (cursor->type != TokenType::Number) {
-    std::cerr << "Expected a number" << std::endl;
-    exit(1);
-  }
-  std::string value = cursor->id;
+  Expression value = parse_expression();
   cursor++;
 
   if (cursor->type != TokenType::Semicolon) {
@@ -41,12 +50,6 @@ Variable Parser::parse_variable_assignment() {
     exit(1);
   }
 
-  // TODO: Figure out the type using the cursor->kind (when it is a number)
-  //       Here I'm returning a Float everytime, but it will not work in the
-  //       future
-  // TODO: Study the differences between expressions and statements in order to
-  // parse
-  //       the program
   return new_variable(Type::Float, variable_name, value);
 }
 

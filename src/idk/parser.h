@@ -13,17 +13,22 @@ enum class Type {
 };
 
 struct ASTNode {};
-
 struct Statement : ASTNode {};
+struct Expression : ASTNode {};
+
+struct NumberExpr : Expression {
+  NumberKind kind;
+  std::string value;
+};
 
 struct Variable : Statement {
   Type type;
   std::string name;
-  // It is not quite a string, it can be anything
-  std::string value;
+  Expression value;
 };
 
 Variable new_variable(Type type, std::string name, std::string value);
+NumberExpr new_number_expression(NumberKind kind, std::string value);
 
 class Parser {
  private:
@@ -34,6 +39,7 @@ class Parser {
   Parser(std::vector<Token> tokens_);
 
   Variable parse_variable_assignment();
+  Expression parse_expression();
 
   void generate_ast();
 };
