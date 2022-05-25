@@ -13,21 +13,35 @@ Lexer::Lexer(const std::vector<char>& source) {
 
 Token new_token(TokenType type, std::string id) { return Token { type, id }; }
 
+bool equals(std::string identifier, std::string keyword) {
+    return identifier.compare(keyword) == 0;
+}
+
+// TODO: Refactor (lots of if statement)
 Token classify_identifier(std::string identifier) {
-    if(identifier.compare("def") == 0) {
+    if(equals(identifier, "def")) {
 	return new_token(TokenType::Def, identifier);
 
-    } else if(identifier.compare("return") == 0) {
+    } else if(equals(identifier, "return")) {
 	return new_token(TokenType::Return, identifier);
 
-    } else if(identifier.compare("if") == 0) {
+    } else if(equals(identifier, "if")) {
 	return new_token(TokenType::If, identifier);
 
-    } else if(identifier.compare("elif") == 0) {
+    } else if(equals(identifier, "elif")) {
 	return new_token(TokenType::Elif, identifier);
 
-    } else if(identifier.compare("else") == 0) {
+    } else if(equals(identifier, "else")) {
 	return new_token(TokenType::Else, identifier);
+
+    } else if(equals(identifier, "int")) {
+	return new_token(TokenType::Int, identifier);
+
+    } else if(equals(identifier, "float")) {
+	return new_token(TokenType::Float, identifier);
+
+    } else if(equals(identifier, "bool")) {
+	return new_token(TokenType::Boolean, identifier);
     }
 
     return new_token(TokenType::Identifier, identifier);
@@ -85,8 +99,6 @@ std::vector<Token> Lexer::tokenize() {
 
 	std::string token;
 	token = current_char;
-
-	std::cout << "Current char: " << current_char << std::endl;
 
 	if(isalpha(current_char)) {
 	    std::string identifier = get_identifier();
@@ -157,5 +169,6 @@ std::vector<Token> Lexer::tokenize() {
 	}
     }
 
+    tokens.push_back(new_token(TokenType::Eof, "EOF"));
     return tokens;
 }

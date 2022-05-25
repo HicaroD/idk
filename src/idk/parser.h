@@ -3,8 +3,8 @@
 
 #include <idk/lexer.h>
 
-#include <vector>
 #include <string>
+#include <vector>
 
 enum class Type {
     Int,
@@ -12,29 +12,30 @@ enum class Type {
     Boolean,
 };
 
-struct Parameter {
-    std::string name;
-    Type type;
-};
-
 struct ASTNode {};
 
-struct Variable : ASTNode {
-    std::string name;
-    Type type;
+struct Statement : ASTNode {};
 
-    // It is not quite a string, it will be changed in the future
+struct Variable : Statement {
+    Type type;
+    std::string name;
+    // It is not quite a string, it can be anything
     std::string value;
 };
 
-struct Function : ASTNode {
-    std::string return_type;
-    std::string name;
-    std::vector<Parameter*> parameters;
-    // TODO: Declare the body of the function
-};
+Variable new_variable(std::string name, Type type, std::string value);
 
-// TODO: Declare parser functions (one for each non-terminal)
-class Parser {};
+class Parser {
+    private:
+	std::vector<Token> tokens;
+	std::vector<Token>::iterator cursor;
+
+    public:
+	Parser(std::vector<Token> tokens_);
+
+	ASTNode parse_variable_assignment(std::vector<Token>::iterator* current_token);
+
+	void generate_ast();
+};
 
 #endif // PARSER_H 

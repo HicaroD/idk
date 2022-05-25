@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
 
     std::vector<Token> tokens = lexer->tokenize();
     for(Token token: tokens) {
-	std::cout << token.id << std::endl;
+	printf("[%s]\n", token.id.c_str());
     }
 
     delete lexer;

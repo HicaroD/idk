@@ -30,6 +30,13 @@ enum class TokenType {
     Mod,
     Divides,
     Times,
+
+    Eof,
+
+    // Types
+    Int,
+    Float,
+    Boolean,
 };
 
 struct Token {
