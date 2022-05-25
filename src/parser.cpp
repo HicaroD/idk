@@ -47,6 +47,6 @@ Variable Parser::parse_variable_assignment() {
 void Parser::generate_ast() {
   if (cursor->type == TokenType::Float) {
     Variable variable = parse_variable_assignment();
-    printf("float %s = %s\n;", variable.name.c_str(), variable.value.c_str());
+    printf("float %s = %s;\n", variable.name.c_str(), variable.value.c_str());
   }
 }
