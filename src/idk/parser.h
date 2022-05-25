@@ -23,7 +23,7 @@ struct Variable : Statement {
     std::string value;
 };
 
-Variable new_variable(std::string name, Type type, std::string value);
+Variable new_variable(Type type, std::string name, std::string value);
 
 class Parser {
     private:
@@ -33,7 +33,7 @@ class Parser {
     public:
 	Parser(std::vector<Token> tokens_);
 
-	ASTNode parse_variable_assignment(std::vector<Token>::iterator* current_token);
+	Variable parse_variable_assignment();
 
 	void generate_ast();
 };

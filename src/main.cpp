@@ -36,14 +36,22 @@ int main(int argc, char **argv) {
 	exit(1);
     }
 
+    std::cout << "----STARTING LEXER----" << std::endl;
     Lexer* lexer = new Lexer(source_code);
     lexer->advance();
 
     std::vector<Token> tokens = lexer->tokenize();
     for(Token token: tokens) {
-	printf("[%s]\n", token.id.c_str());
+        printf("[%s]\n", token.id.c_str());
     }
+    std::cout << "----ENDING LEXER----\n" << std::endl;
+
+    std::cout << "----STARTING PARSER----" << std::endl;
+    Parser* parser = new Parser(tokens);
+    parser->generate_ast();
+    std::cout << "----ENDING PARSER----" << std::endl;
 
     delete lexer;
+    delete parser;
     return 0;
 }
