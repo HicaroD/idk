@@ -1,6 +1,7 @@
 #include "idk/parser.h"
 
 #include <iostream>
+#include <unordered_set>
 #include <vector>
 
 #include "idk/lexer.h"
@@ -43,8 +44,11 @@ Variable Parser::parse_variable_assignment() {
 }
 
 void Parser::generate_ast() {
+  std::unordered_set<TokenType> data_types = {TokenType::Int, TokenType::Float,
+                                              TokenType::Boolean};
+
   while (cursor->type != TokenType::Eof) {
-    if (cursor->type == TokenType::Float || cursor->type == TokenType::Int) {
+    if (data_types.contains(cursor->type)) {
       Variable variable = parse_variable_assignment();
       printf("VARIABLE '%s' => %s ;\n", variable.name.c_str(),
              variable.value.c_str());
