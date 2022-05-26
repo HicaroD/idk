@@ -14,6 +14,7 @@ enum class TokenType {
   Int,
   Float,
   Boolean,
+  String,
 
   Identifier,
 
@@ -22,6 +23,7 @@ enum class TokenType {
   IntNumber,
   True,
   False,
+  Str,
 
   // Special characters
   Parenthesis,
@@ -66,6 +68,7 @@ class Lexer {
   std::vector<Token> tokenize();
   std::string get_identifier();
   Token get_number();
+  Token get_string();
 };
 
 #endif  // LEXER_H

@@ -16,11 +16,12 @@ Token new_token(TokenType type, std::string id) { return Token{type, id}; }
 
 Token classify_identifier(std::string identifier) {
   std::unordered_map<std::string, TokenType> keywords = {
-      {"def", TokenType::Def},     {"return", TokenType::Return},
-      {"if", TokenType::If},       {"elif", TokenType::Elif},
-      {"else", TokenType::Else},   {"int", TokenType::Int},
-      {"float", TokenType::Float}, {"bool", TokenType::Boolean},
-      {"true", TokenType::True},   {"false", TokenType::False},
+      {"def", TokenType::Def},       {"return", TokenType::Return},
+      {"if", TokenType::If},         {"elif", TokenType::Elif},
+      {"else", TokenType::Else},     {"int", TokenType::Int},
+      {"float", TokenType::Float},   {"bool", TokenType::Boolean},
+      {"true", TokenType::True},     {"false", TokenType::False},
+      {"string", TokenType::String},
   };
 
   if (keywords.contains(identifier)) {
@@ -73,6 +74,17 @@ std::string Lexer::get_identifier() {
     advance();
   }
   return identifier;
+}
+
+Token Lexer::get_string() {
+  advance();
+
+  std::string str;
+  while (current_char != '"') {
+    str += current_char;
+    advance();
+  }
+  return new_token(TokenType::Str, str);
 }
 
 void Lexer::consume(Token token, std::vector<Token> &tokens) {
@@ -147,6 +159,10 @@ std::vector<Token> Lexer::tokenize() {
 
         case '%':
           consume(new_token(TokenType::Mod, token), tokens);
+          break;
+
+        case '"':
+          consume(get_string(), tokens);
           break;
 
         default:

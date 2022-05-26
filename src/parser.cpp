@@ -44,8 +44,8 @@ Variable Parser::parse_variable_assignment() {
 }
 
 void Parser::generate_ast() {
-  std::unordered_set<TokenType> data_types = {TokenType::Int, TokenType::Float,
-                                              TokenType::Boolean};
+  std::unordered_set<TokenType> data_types = {
+      TokenType::Int, TokenType::Float, TokenType::Boolean, TokenType::String};
 
   while (cursor->type != TokenType::Eof) {
     if (data_types.contains(cursor->type)) {
