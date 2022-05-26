@@ -65,10 +65,12 @@ class Lexer {
   bool is_eof();
   void skip_whitespace();
   void consume(Token token, std::vector<Token> &tokens);
-  std::vector<Token> tokenize();
+
   std::string get_identifier();
   Token get_number();
   Token get_string();
+
+  std::vector<Token> tokenize();
 };
 
 #endif  // LEXER_H
