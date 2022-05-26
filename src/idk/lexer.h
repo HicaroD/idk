@@ -1,61 +1,71 @@
-#ifndef LEXER_H 
+#ifndef LEXER_H
 #define LEXER_H
 
-#include <vector>
 #include <string>
+#include <vector>
 
 enum class TokenType {
-    // Keywords
-    Def,
-    Return,
-    If,
-    Elif,
-    Else,
+  // Keywords
+  Def,
+  Return,
+  If,
+  Elif,
+  Else,
+  Int,
+  Float,
+  Boolean,
 
-    Identifier,
-    Number,
+  Identifier,
 
-    // Special characters
-    Parenthesis,
-    CurlyBraces,
-    Brackets,
-    EqualSign,
-    Semicolon,
-    Colon,
-    Comma,
+  // Data types
+  FloatNumber,
+  IntNumber,
+  True,
+  False,
 
-    // Operators
-    Plus,
-    Minus,
-    Mod,
-    Divides,
-    Times,
+  // Special characters
+  Parenthesis,
+  CurlyBraces,
+  Brackets,
+  EqualSign,
+  Semicolon,
+  Colon,
+  Comma,
+
+  // Operators
+  Plus,
+  Minus,
+  Mod,
+  Divides,
+  Times,
+
+  Eof,
 };
 
 struct Token {
-    TokenType type;
-    std::string id;
+  TokenType type;
+  std::string id;
 };
 
 Token new_token(TokenType type, std::string id);
 Token classify_identifier(std::string identifier);
 
 class Lexer {
-    private:
-	std::vector<char> source_code;
-	char current_char;
-	int position;
+ private:
+  std::vector<char> source_code;
+  char current_char;
+  int position;
 
-    public:
-	Lexer(const std::vector<char>& source);
+ public:
+  Lexer(const std::vector<char> &source);
 
-	void advance();
-	bool is_eof();
-	void skip_whitespace();
-	void consume(Token token, std::vector<Token>& tokens);
-	std::vector<Token> tokenize();
-	std::string get_identifier();
-	std::string get_number();
+  void advance();
+  bool is_eof();
+  void skip_whitespace();
+  void consume(Token token, std::vector<Token> &tokens);
+  std::vector<Token> tokenize();
+  std::string get_identifier();
+  Token get_number();
 };
 
-#endif // LEXER_H
+#endif  // LEXER_H
