@@ -2,7 +2,6 @@
 
 <statements>  = <statements> <statement> ;
 
-(* there is more types of statements *)
 <statement>   = <assignment> ;
 
 <assignment>  = <type_assign> <identifier> "=" <expression> ;
