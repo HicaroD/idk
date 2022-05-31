@@ -15,31 +15,43 @@ Variable new_variable(TokenType type, std::string name, std::string value) {
   return Variable{{}, type, name, value};
 }
 
-Variable Parser::parse_variable_assignment() {
-  TokenType variable_type = cursor->type;
-  cursor++;
-
+std::string Parser::parse_identifier() {
   if (cursor->type != TokenType::Identifier) {
     std::cerr << "Expected an identifier" << std::endl;
     exit(1);
   }
   std::string variable_name = cursor->id;
   cursor++;
+  return variable_name;
+}
 
+void Parser::parse_equal_sign() {
   if (cursor->type != TokenType::EqualSign) {
     std::cerr << "Expected an equal sign" << std::endl;
     exit(1);
   }
   cursor++;
+}
 
-  std::string value = cursor->id;
-  cursor++;
-
+void Parser::parse_semicolon() {
   if (cursor->type != TokenType::Semicolon) {
     std::cerr << "Expected a ';' at the end of the statement" << std::endl;
     exit(1);
   }
   cursor++;
+}
+
+Variable Parser::parse_variable_assignment() {
+  TokenType variable_type = cursor->type;
+  cursor++;
+
+  std::string variable_name = parse_identifier();
+  parse_equal_sign();
+
+  std::string value = cursor->id;
+  cursor++;
+
+  parse_semicolon();
   return new_variable(variable_type, variable_name, value);
 }
 
