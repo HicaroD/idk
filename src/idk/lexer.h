@@ -6,7 +6,7 @@
 
 enum class TokenType {
   // Keywords
-  Def,
+  Fn,
   Return,
   If,
   Elif,

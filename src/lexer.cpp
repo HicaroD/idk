@@ -16,7 +16,7 @@ Token new_token(TokenType type, std::string id) { return Token{type, id}; }
 
 Token classify_identifier(std::string identifier) {
   std::unordered_map<std::string, TokenType> keywords = {
-      {"def", TokenType::Def},       {"return", TokenType::Return},
+      {"fn", TokenType::Fn},         {"return", TokenType::Return},
       {"if", TokenType::If},         {"elif", TokenType::Elif},
       {"else", TokenType::Else},     {"int", TokenType::Int},
       {"float", TokenType::Float},   {"bool", TokenType::Boolean},
