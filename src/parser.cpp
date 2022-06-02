@@ -1,18 +1,15 @@
 #include "idk/parser.h"
 
 #include <iostream>
-#include <unordered_set>
+#include <unordered_set> 
 #include <vector>
+#include <stdlib.h>
 
 #include "idk/lexer.h"
 
 Parser::Parser(std::vector<Token> tokens_) {
   tokens = tokens_;
   cursor = tokens.begin();
-}
-
-Variable new_variable(TokenType type, std::string name, std::string value) {
-  return Variable{{}, type, name, value};
 }
 
 std::string Parser::parse_identifier() {
@@ -41,29 +38,54 @@ void Parser::parse_semicolon() {
   cursor++;
 }
 
-Variable Parser::parse_variable_assignment() {
+Number::Number(TokenType t, double val) {
+    type = t;
+    value = val;
+}
+
+Expression Parser::parse_expression() { 
+    if(cursor->type == TokenType::FloatNumber || cursor->type == TokenType::IntNumber) {
+	double number_value = std::atof((cursor->id).c_str());
+	return Number(cursor->type, number_value);
+    } else {
+	std::cerr << "Invalid expression" << std::endl;
+	exit(1);
+    }
+}
+
+Assignment::Assignment(TokenType t, std::string ident, Expression val) {
+    type = t;
+    identifier = ident;
+    value = val;
+}
+
+Assignment Parser::parse_assignment() {
   TokenType variable_type = cursor->type;
   cursor++;
 
   std::string variable_name = parse_identifier();
   parse_equal_sign();
 
-  std::string value = cursor->id;
+  Expression value = parse_expression();
   cursor++;
 
   parse_semicolon();
-  return new_variable(variable_type, variable_name, value);
+  return Assignment(variable_type, variable_name, value);
 }
 
-void Parser::generate_ast() {
+std::vector<ASTNode> Parser::generate_ast() {
+  std::vector<ASTNode> ast;
+
   std::unordered_set<TokenType> data_types = {
       TokenType::Int, TokenType::Float, TokenType::Boolean, TokenType::String};
 
   while (cursor->type != TokenType::Eof) {
     if (data_types.contains(cursor->type)) {
-      Variable variable = parse_variable_assignment();
-      printf("VARIABLE '%s' => %s ;\n", variable.name.c_str(),
-             variable.value.c_str());
+      Assignment variable = parse_assignment();
+      printf("Variable '%s'\n", variable.get_variable_name().c_str());
+      ast.push_back(variable);
     }
   }
+
+  return ast;
 }

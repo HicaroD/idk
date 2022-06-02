@@ -6,23 +6,29 @@
 #include <string>
 #include <vector>
 
-enum class Type {
-  Int,
-  Float,
-  Boolean,
+class ASTNode {};
+
+class Expression : public ASTNode {};
+class Statement : public ASTNode {};
+
+class Number : public Expression {
+    private:
+	TokenType type;
+	double value;
+    public:
+	Number(TokenType type, double value);
 };
 
-struct ASTNode {};
-struct Statement : ASTNode {};
-struct Expression : ASTNode {};
-
-struct Variable : ASTNode {
-  TokenType type;
-  std::string name;
-  std::string value;
+class Assignment : public Statement {
+    private:
+	TokenType type;
+	std::string identifier;
+	Expression value;
+    public:
+	Assignment(TokenType type, std::string identifier, Expression value);
+	std::string get_variable_name() { return identifier; }
 };
 
-Variable new_variable(TokenType type, std::string name, std::string value);
 
 class Parser {
  private:
@@ -32,14 +38,14 @@ class Parser {
  public:
   Parser(std::vector<Token> tokens_);
 
-  Variable parse_variable_assignment();
+  Assignment parse_assignment();
   Expression parse_expression();
 
   std::string parse_identifier();
   void parse_semicolon();
   void parse_equal_sign();
 
-  void generate_ast();
+  std::vector<ASTNode> generate_ast();
 };
 
 #endif  // PARSER_H
