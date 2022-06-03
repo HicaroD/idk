@@ -1,6 +1,8 @@
 mod lexer;
+mod parser;
 
 use lexer::Lexer;
+use parser::Parser;
 use std::{env, fs, io, path::Path};
 
 fn get_source_code(path: String) -> io::Result<Vec<char>> {
@@ -27,11 +29,18 @@ fn main() -> io::Result<()> {
         std::process::exit(1);
     }
 
+    println!("--STARTING LEXER--");
     let mut lexer = Lexer::new(source_code);
     let tokens = lexer.tokenize();
 
     for token in tokens.iter() {
         println!("{:?}", token);
     }
+    println!("--ENDING LEXER--");
+
+    println!("--STARTING PARSER--");
+    let mut parser = Parser::new(tokens);
+    parser.generate_ast();
+    println!("--ENDING PARSER--");
     Ok(())
 }
