@@ -41,6 +41,8 @@ class Parser {
   Assignment parse_assignment();
   Expression parse_expression();
 
+  bool is_data_type(TokenType token);
+
   std::string parse_identifier();
   void parse_semicolon();
   void parse_equal_sign();

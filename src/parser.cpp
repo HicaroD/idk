@@ -12,6 +12,12 @@ Parser::Parser(std::vector<Token> tokens_) {
   cursor = tokens.begin();
 }
 
+bool Parser::is_data_type(TokenType token) {
+  std::unordered_set<TokenType> data_types = {
+      TokenType::Int, TokenType::Float, TokenType::Boolean, TokenType::String};
+  return data_types.contains(token);
+}
+
 std::string Parser::parse_identifier() {
   if (cursor->type != TokenType::Identifier) {
     std::cerr << "Expected an identifier" << std::endl;
@@ -76,11 +82,8 @@ Assignment Parser::parse_assignment() {
 std::vector<ASTNode> Parser::generate_ast() {
   std::vector<ASTNode> ast;
 
-  std::unordered_set<TokenType> data_types = {
-      TokenType::Int, TokenType::Float, TokenType::Boolean, TokenType::String};
-
   while (cursor->type != TokenType::Eof) {
-    if (data_types.contains(cursor->type)) {
+    if (is_data_type(cursor->type)) {
       Assignment variable = parse_assignment();
       printf("Variable '%s'\n", variable.get_variable_name().c_str());
       ast.push_back(variable);
