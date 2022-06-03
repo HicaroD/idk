@@ -1,8 +1,10 @@
+use std::collections::HashMap;
+
 #[derive(Debug, Clone)]
 pub enum Token {
     SpecialChar(SpecialCharId),
     Keyword(KeywordId),
-    Operator(OperatorId), 
+    Operator(OperatorId),
     RelOperator(RelOperatorId),
     UnaryOperator(UnaryOperatorId),
     BitwiseOperator(BitwiseOperatorId),
@@ -25,10 +27,10 @@ pub enum LogicOperatorId {
 
 #[derive(Debug, Clone)]
 pub enum UnaryOperatorId {
-    Minus,      // -
-    Increment,  // ++
-    Decrement,  // --
-    Not,        // !
+    Minus,     // -
+    Increment, // ++
+    Decrement, // --
+    Not,       // !
 }
 
 #[derive(Debug, Clone)]
@@ -111,13 +113,17 @@ impl Lexer {
     }
 
     fn classify_identifier(&self, identifier: &str) -> Token {
-        match identifier {
-            "def" => Token::Keyword(KeywordId::Def),
-            "if" => Token::Keyword(KeywordId::If),
-            "elif" => Token::Keyword(KeywordId::Elif),
-            "else" => Token::Keyword(KeywordId::Else),
-            "return" => Token::Keyword(KeywordId::Return),
-            _ => Token::Identifier(identifier.to_string()),
+        let keywords: HashMap<&str, KeywordId> = HashMap::from([
+            ("def", KeywordId::Def),
+            ("if", KeywordId::If),
+            ("elif", KeywordId::Elif),
+            ("else", KeywordId::Else),
+            ("return", KeywordId::Return),
+        ]);
+
+        match keywords.get(identifier) {
+            Some(keyword_type) => Token::Keyword(keyword_type),
+            None => Token::Identifier(identifier.to_string()),
         }
     }
 
@@ -177,9 +183,11 @@ impl Lexer {
 
             '>' => {
                 self.advance();
-                
+
                 if self.current_char == '=' {
-                    return self.consume_and_advance(Token::RelOperator(RelOperatorId::GreaterThanOrEqual));
+                    return self.consume_and_advance(Token::RelOperator(
+                        RelOperatorId::GreaterThanOrEqual,
+                    ));
                 }
 
                 return Token::RelOperator(RelOperatorId::GreaterThan);
@@ -187,29 +195,32 @@ impl Lexer {
 
             '<' => {
                 self.advance();
-                
+
                 if self.current_char == '=' {
-                    return self.consume_and_advance(Token::RelOperator(RelOperatorId::LessThanOrEqual));
+                    return self
+                        .consume_and_advance(Token::RelOperator(RelOperatorId::LessThanOrEqual));
                 }
 
                 return Token::RelOperator(RelOperatorId::LessThan);
             }
 
-            '+'  => {
+            '+' => {
                 self.advance();
 
                 if self.current_char == '+' {
-                    return self.consume_and_advance(Token::UnaryOperator(UnaryOperatorId::Increment));
+                    return self
+                        .consume_and_advance(Token::UnaryOperator(UnaryOperatorId::Increment));
                 }
 
                 return Token::Operator(OperatorId::Plus);
             }
 
-            '-'  => {
+            '-' => {
                 self.advance();
 
                 if self.current_char == '-' {
-                    return self.consume_and_advance(Token::UnaryOperator(UnaryOperatorId::Decrement));
+                    return self
+                        .consume_and_advance(Token::UnaryOperator(UnaryOperatorId::Decrement));
                 }
                 return Token::Operator(OperatorId::Minus);
             }
@@ -241,11 +252,11 @@ impl Lexer {
                 return Token::BitwiseOperator(BitwiseOperatorId::And);
             }
 
-            '/'  => self.consume_and_advance(Token::Operator(OperatorId::Divides)),
+            '/' => self.consume_and_advance(Token::Operator(OperatorId::Divides)),
 
-            '*'  => self.consume_and_advance(Token::Operator(OperatorId::Times)),
+            '*' => self.consume_and_advance(Token::Operator(OperatorId::Times)),
 
-            '%'  => self.consume_and_advance(Token::Operator(OperatorId::Mod)),
+            '%' => self.consume_and_advance(Token::Operator(OperatorId::Mod)),
 
             _ => {
                 eprintln!("Error: Invalid token '{:?}'", self.current_char);
