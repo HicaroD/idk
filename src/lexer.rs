@@ -13,19 +13,19 @@ pub enum Token {
     Identifier(String),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum BitwiseOperatorId {
     And, // &
     Or,  // |
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum LogicOperatorId {
     And, // &&
     Or,  // ||
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum UnaryOperatorId {
     Minus,     // -
     Increment, // ++
@@ -33,7 +33,7 @@ pub enum UnaryOperatorId {
     Not,       // !
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum SpecialCharId {
     Colon,
     OpeningPar,
@@ -46,7 +46,7 @@ pub enum SpecialCharId {
     EqualSign,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum KeywordId {
     Def,
     If,
@@ -55,7 +55,7 @@ pub enum KeywordId {
     Return,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum OperatorId {
     Plus,
     Minus,
@@ -64,7 +64,7 @@ pub enum OperatorId {
     Times,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum RelOperatorId {
     GreaterThan,
     LessThan,
@@ -122,7 +122,7 @@ impl Lexer {
         ]);
 
         match keywords.get(identifier) {
-            Some(keyword_type) => Token::Keyword(keyword_type),
+            Some(keyword_type) => Token::Keyword(*keyword_type),
             None => Token::Identifier(identifier.to_string()),
         }
     }
