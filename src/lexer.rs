@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Token {
     SpecialChar(SpecialCharId),
     Keyword(KeywordId),
@@ -11,21 +11,22 @@ pub enum Token {
     LogicOperator(LogicOperatorId),
     Number(String),
     Identifier(String),
+    EOF,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum BitwiseOperatorId {
     And, // &
     Or,  // |
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum LogicOperatorId {
     And, // &&
     Or,  // ||
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum UnaryOperatorId {
     Minus,     // -
     Increment, // ++
@@ -33,7 +34,7 @@ pub enum UnaryOperatorId {
     Not,       // !
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum SpecialCharId {
     Colon,
     OpeningPar,
@@ -46,7 +47,7 @@ pub enum SpecialCharId {
     EqualSign,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum KeywordId {
     Def,
     If,
@@ -55,7 +56,7 @@ pub enum KeywordId {
     Return,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum OperatorId {
     Plus,
     Minus,
@@ -64,7 +65,7 @@ pub enum OperatorId {
     Times,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum RelOperatorId {
     GreaterThan,
     LessThan,
@@ -92,11 +93,10 @@ impl Lexer {
     }
 
     fn advance(&mut self) {
-        if self.position < self.source_code.len() {
+        if self.position < self.source_code.len() - 1 {
             self.current_char = self.source_code[self.position];
             self.position += 1;
-        }
-        if self.position == self.source_code.len() {
+        } else {
             self.is_end_of_file = true;
         }
     }
@@ -282,6 +282,7 @@ impl Lexer {
                 break;
             }
         }
+        tokens.push(Token::EOF);
         return tokens;
     }
 }
