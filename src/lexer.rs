@@ -54,6 +54,9 @@ pub enum KeywordId {
     Elif, // Else if
     Else,
     Return,
+    Int,
+    Float,
+    Bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -119,6 +122,9 @@ impl Lexer {
             ("elif", KeywordId::Elif),
             ("else", KeywordId::Else),
             ("return", KeywordId::Return),
+            ("bool", KeywordId::Bool),
+            ("int", KeywordId::Int),
+            ("float", KeywordId::Float),
         ]);
 
         match keywords.get(identifier) {
