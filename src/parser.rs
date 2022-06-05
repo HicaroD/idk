@@ -25,7 +25,7 @@ impl Parser {
         }
     }
 
-    // TODO: Refactor this function
+    // TODO: Refactor this function (it will get worse when I extend the language with more types)
     fn is_data_type(&self) -> bool {
         match self.current_token {
             Token::Keyword(KeywordId::Int)
