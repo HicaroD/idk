@@ -1,3 +1,11 @@
+<program>     = <statements> ;
+
+<statements>  = <statements> <statement> ;
+
+<statement>   = <assignment> ;
+
+<assignment>  = <type_assign> <identifier> "=" <expression> ;
+
 <expression>  = ["+"|"-"] <term> { ("+"|"-") <term> } ;
 
 <term>        = <factor> { ("*"|"/") <factor> } ;
