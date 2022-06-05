@@ -1,3 +1,4 @@
+mod ast;
 mod lexer;
 mod parser;
 
@@ -40,7 +41,8 @@ fn main() -> io::Result<()> {
 
     println!("--STARTING PARSER--");
     let mut parser = Parser::new(tokens);
-    parser.generate_ast();
+    // FIXME: Assuming that will always work
+    parser.generate_ast().unwrap();
     println!("--ENDING PARSER--");
     Ok(())
 }
