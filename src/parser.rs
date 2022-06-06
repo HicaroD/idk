@@ -1,12 +1,11 @@
 use crate::ast::*;
 use crate::lexer::*;
-use std::collections::HashSet;
 use std::str::FromStr;
 
 pub struct Parser {
-    pub tokens: Vec<Token>,
-    pub current_token: Token,
-    pub position: usize,
+    tokens: Vec<Token>,
+    current_token: Token,
+    position: usize,
 }
 
 impl Parser {
@@ -91,7 +90,7 @@ impl Parser {
     fn parse_equal_sign(&self) -> Result<(), String> {
         println!("PARSING EQUAL SIGN: {:?}", self.current_token);
         if self.current_token != Token::SpecialChar(SpecialCharId::EqualSign) {
-            Err("Expected equal sign".to_string())
+            Err("Expected an equal sign".to_string())
         } else {
             Ok(())
         }
