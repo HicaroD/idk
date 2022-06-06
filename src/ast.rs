@@ -3,11 +3,13 @@ pub enum Type {
     Int,
     Float,
     Bool,
+    StringType,
 }
 
 #[derive(Debug, Clone)]
 pub enum Expression {
     Number(f64),
+    StringExpr(String),
 }
 
 #[derive(Debug, Clone)]

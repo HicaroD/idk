@@ -29,7 +29,8 @@ impl Parser {
         match self.current_token {
             Token::Keyword(KeywordId::Int)
             | Token::Keyword(KeywordId::Float)
-            | Token::Keyword(KeywordId::Bool) => true,
+            | Token::Keyword(KeywordId::Bool)
+            | Token::Keyword(KeywordId::StringKeyword) => true,
 
             _ => false,
         }
@@ -42,10 +43,11 @@ impl Parser {
                 KeywordId::Int => Ok(Type::Int),
                 KeywordId::Float => Ok(Type::Float),
                 KeywordId::Bool => Ok(Type::Bool),
-                _ => Err("Error while parsing variable type".to_string()),
+                KeywordId::StringKeyword => Ok(Type::StringType),
+                _ => Err(format!("Error while parsing variable type")),
             }
         } else {
-            Err("Unexpected token on variable declaration".to_string())
+            Err(format!("Unexpected token on variable declaration"))
         }
     }
 
@@ -54,7 +56,7 @@ impl Parser {
         if let Token::Identifier(ident) = &self.current_token {
             Ok(ident.to_string())
         } else {
-            Err("Error while parsing identifier".to_string())
+            Err(format!("Error while parsing identifier"))
         }
     }
 
@@ -63,7 +65,7 @@ impl Parser {
         if self.is_data_type() {
             return Ok(Statement::Assignment(self.parse_assignment()?));
         }
-        return Err("Invalid statement".to_string());
+        return Err(format!("Invalid statement"));
     }
 
     fn parse_expression(&mut self) -> Result<Expression, String> {
@@ -74,14 +76,17 @@ impl Parser {
                 let value = f64::from_str(&number).unwrap();
                 Ok(Expression::Number(value))
             }
-            _ => Err("Invalid expression".to_string()),
+
+            Token::StringValue(string) => Ok(Expression::StringExpr(string.to_string())),
+
+            _ => Err(format!("Invalid expression")),
         }
     }
 
     fn parse_semicolon(&self) -> Result<(), String> {
         println!("PARSING SEMICOLON: {:?}", self.current_token);
         if self.current_token != Token::SpecialChar(SpecialCharId::Semicolon) {
-            Err("Expected semicolon at the end of statement".to_string())
+            Err(format!("Expected semicolon at the end of statement"))
         } else {
             Ok(())
         }
@@ -90,7 +95,7 @@ impl Parser {
     fn parse_equal_sign(&self) -> Result<(), String> {
         println!("PARSING EQUAL SIGN: {:?}", self.current_token);
         if self.current_token != Token::SpecialChar(SpecialCharId::EqualSign) {
-            Err("Expected an equal sign".to_string())
+            Err(format!("Expected an equal sign"))
         } else {
             Ok(())
         }

@@ -10,6 +10,7 @@ pub enum Token {
     BitwiseOperator(BitwiseOperatorId),
     LogicOperator(LogicOperatorId),
     Number(String),
+    StringValue(String),
     Identifier(String),
     EOF,
 }
@@ -54,6 +55,7 @@ pub enum KeywordId {
     Int,
     Float,
     Bool,
+    StringKeyword,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -126,6 +128,7 @@ impl Lexer {
             ("bool", KeywordId::Bool),
             ("int", KeywordId::Int),
             ("float", KeywordId::Float),
+            ("string", KeywordId::StringKeyword),
         ]);
 
         match keywords.get(identifier) {
@@ -138,7 +141,7 @@ impl Lexer {
         let mut identifier = String::from(self.current_char);
         self.advance();
 
-        while (self.current_char.is_alphanumeric() || self.current_char == '_') && !self.is_eof() {
+        while self.current_char.is_alphanumeric() || self.current_char == '_' {
             identifier.push(self.current_char);
             self.advance();
         }
@@ -150,12 +153,26 @@ impl Lexer {
         let mut number = String::from(self.current_char);
         self.advance();
 
-        while (self.current_char.is_ascii_digit() || self.current_char == '.') && !self.is_eof() {
+        while self.current_char.is_ascii_digit() || self.current_char == '.' {
             number.push(self.current_char);
             self.advance();
         }
 
         Token::Number(number)
+    }
+
+    fn get_string(&mut self) -> Token {
+        self.advance();
+        let mut string = String::new();
+
+        println!("READING STRING: {}", self.current_char);
+        while self.current_char != '"' {
+            string.push(self.current_char);
+            self.advance();
+        }
+
+        self.advance();
+        Token::StringValue(string)
     }
 
     fn get_token(&mut self) -> Token {
@@ -165,6 +182,8 @@ impl Lexer {
             letter if self.current_char.is_alphabetic() => self.get_identifier(),
 
             digit if digit.is_ascii_digit() => self.get_number(),
+
+            '"' => self.get_string(),
 
             ':' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::Colon)),
 
