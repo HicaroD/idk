@@ -96,7 +96,7 @@ impl Lexer {
     }
 
     fn advance(&mut self) {
-        if self.position < self.source_code.len() - 1 {
+        if self.position < self.source_code.len() {
             self.current_char = self.source_code[self.position];
             self.position += 1;
         } else {
@@ -133,33 +133,40 @@ impl Lexer {
         }
     }
 
+    fn get_identifier(&mut self) -> Token {
+        let mut identifier = String::from(self.current_char);
+        self.advance();
+
+        while (self.current_char.is_alphanumeric() || self.current_char == '_') {
+            identifier.push(self.current_char);
+            self.advance();
+        }
+
+        self.advance();
+        Token::Identifier(identifier)
+    }
+
+    fn get_number(&mut self) -> Token {
+        let mut number = String::from(self.current_char);
+        self.advance();
+
+        while (self.current_char.is_ascii_digit() || self.current_char == '.') {
+            println!("ARE YOU SERIOUS? WHY IS IT STUCK HERE?");
+            number.push(self.current_char);
+            self.advance();
+        }
+
+        self.advance();
+        Token::Number(number)
+    }
+
     fn get_token(&mut self) -> Token {
         self.skip_any_whitespace();
 
         match self.current_char {
-            letter if self.current_char.is_alphabetic() => {
-                let mut identifier = String::from(letter);
-                self.advance();
+            letter if self.current_char.is_alphabetic() => self.get_identifier(),
 
-                while self.current_char.is_alphanumeric() || self.current_char == '_' {
-                    identifier.push(self.current_char);
-                    self.advance();
-                }
-
-                Token::Identifier(identifier)
-            }
-
-            digit if digit.is_ascii_digit() => {
-                let mut number = String::from(digit);
-                self.advance();
-
-                while self.current_char.is_ascii_digit() || self.current_char == '.' {
-                    number.push(self.current_char);
-                    self.advance();
-                }
-
-                Token::Number(number)
-            }
+            digit if digit.is_ascii_digit() => self.get_number(),
 
             ':' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::Colon)),
 
