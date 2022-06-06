@@ -10,6 +10,7 @@ pub enum Token {
     BitwiseOperator(BitwiseOperatorId),
     LogicOperator(LogicOperatorId),
     Number(String),
+    StringValue(String),
     Identifier(String),
     EOF,
 }
@@ -37,12 +38,9 @@ pub enum UnaryOperatorId {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum SpecialCharId {
     Colon,
-    OpeningPar,
-    OpeningCurly,
-    OpeningBracket,
-    ClosingPar,
-    ClosingCurly,
-    ClosingBracket,
+    Parenthesis(char),
+    CurlyBrace(char),
+    Bracket(char),
     Semicolon,
     EqualSign,
 }
@@ -57,6 +55,7 @@ pub enum KeywordId {
     Int,
     Float,
     Bool,
+    StringKeyword,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -95,8 +94,12 @@ impl Lexer {
         }
     }
 
+    fn is_eof(&self) -> bool {
+        self.position >= self.source_code.len()
+    }
+
     fn advance(&mut self) {
-        if self.position < self.source_code.len() - 1 {
+        if !self.is_eof() {
             self.current_char = self.source_code[self.position];
             self.position += 1;
         } else {
@@ -125,6 +128,7 @@ impl Lexer {
             ("bool", KeywordId::Bool),
             ("int", KeywordId::Int),
             ("float", KeywordId::Float),
+            ("string", KeywordId::StringKeyword),
         ]);
 
         match keywords.get(identifier) {
@@ -133,49 +137,69 @@ impl Lexer {
         }
     }
 
+    fn get_identifier(&mut self) -> Token {
+        let mut identifier = String::from(self.current_char);
+        self.advance();
+
+        while self.current_char.is_alphanumeric() || self.current_char == '_' {
+            identifier.push(self.current_char);
+            self.advance();
+        }
+
+        Token::Identifier(identifier)
+    }
+
+    fn get_number(&mut self) -> Token {
+        let mut number = String::from(self.current_char);
+        self.advance();
+
+        while self.current_char.is_ascii_digit() || self.current_char == '.' {
+            number.push(self.current_char);
+            self.advance();
+        }
+
+        Token::Number(number)
+    }
+
+    fn get_string(&mut self) -> Token {
+        self.advance();
+        let mut string = String::new();
+
+        println!("READING STRING: {}", self.current_char);
+        while self.current_char != '"' {
+            string.push(self.current_char);
+            self.advance();
+        }
+
+        self.advance();
+        Token::StringValue(string)
+    }
+
     fn get_token(&mut self) -> Token {
         self.skip_any_whitespace();
 
         match self.current_char {
-            letter if self.current_char.is_alphabetic() => {
-                let mut identifier = String::from(letter);
-                self.advance();
+            letter if self.current_char.is_alphabetic() => self.get_identifier(),
 
-                while self.current_char.is_alphanumeric() || self.current_char == '_' {
-                    identifier.push(self.current_char);
-                    self.advance();
-                }
+            digit if digit.is_ascii_digit() => self.get_number(),
 
-                Token::Identifier(identifier)
-            }
-
-            digit if digit.is_ascii_digit() => {
-                let mut number = String::from(digit);
-                self.advance();
-
-                while self.current_char.is_ascii_digit() || self.current_char == '.' {
-                    number.push(self.current_char);
-                    self.advance();
-                }
-
-                Token::Number(number)
-            }
+            '"' => self.get_string(),
 
             ':' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::Colon)),
 
-            '(' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::OpeningPar)),
+            '(' | ')' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::Parenthesis(
+                self.current_char,
+            ))),
 
-            ')' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::ClosingPar)),
-
-            '{' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::OpeningCurly)),
-
-            '}' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::ClosingCurly)),
+            '{' | '}' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::CurlyBrace(
+                self.current_char,
+            ))),
 
             ';' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::Semicolon)),
 
-            '[' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::OpeningBracket)),
-
-            ']' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::ClosingBracket)),
+            '[' | ']' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::Bracket(
+                self.current_char,
+            ))),
 
             '=' => {
                 self.advance();
@@ -275,7 +299,8 @@ impl Lexer {
         let mut tokens: Vec<Token> = vec![];
 
         self.advance();
-        loop {
+
+        while !self.is_eof() {
             let token = self.get_token();
 
             if let Token::Identifier(ref ident) = token {

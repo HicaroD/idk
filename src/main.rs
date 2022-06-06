@@ -41,8 +41,15 @@ fn main() -> io::Result<()> {
 
     println!("--STARTING PARSER--");
     let mut parser = Parser::new(tokens);
-    // FIXME: Assuming that will always work
-    parser.generate_ast().unwrap();
+
+    let ast = match parser.generate_ast() {
+        Ok(tree) => tree,
+        Err(e) => {
+            eprintln!("{}", e);
+            std::process::exit(1);
+        }
+    };
+
     println!("--ENDING PARSER--");
     Ok(())
 }
