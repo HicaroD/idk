@@ -37,12 +37,9 @@ pub enum UnaryOperatorId {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum SpecialCharId {
     Colon,
-    OpeningPar,
-    OpeningCurly,
-    OpeningBracket,
-    ClosingPar,
-    ClosingCurly,
-    ClosingBracket,
+    Parenthesis(char),
+    CurlyBrace(char),
+    Bracket(char),
     Semicolon,
     EqualSign,
 }
@@ -171,19 +168,19 @@ impl Lexer {
 
             ':' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::Colon)),
 
-            '(' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::OpeningPar)),
+            '(' | ')' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::Parenthesis(
+                self.current_char,
+            ))),
 
-            ')' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::ClosingPar)),
-
-            '{' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::OpeningCurly)),
-
-            '}' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::ClosingCurly)),
+            '{' | '}' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::CurlyBrace(
+                self.current_char,
+            ))),
 
             ';' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::Semicolon)),
 
-            '[' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::OpeningBracket)),
-
-            ']' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::ClosingBracket)),
+            '[' | ']' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::Bracket(
+                self.current_char,
+            ))),
 
             '=' => {
                 self.advance();
