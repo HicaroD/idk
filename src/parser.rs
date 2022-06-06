@@ -110,15 +110,17 @@ impl Parser {
         Ok(Variable::new(var_type, name, expression))
     }
 
-    pub fn generate_ast(&mut self) -> Result<(), String> {
+    pub fn generate_ast(&mut self) -> Result<Vec<Statement>, String> {
         self.advance();
+        let mut statements: Vec<Statement> = vec![];
 
         while self.current_token != Token::EOF {
             let statement = self.parse_statement()?;
+            statements.push(statement.clone());
             println!("CURRENT STATEMENT: {:?}", statement);
             self.advance();
         }
 
-        Ok(())
+        Ok(statements)
     }
 }

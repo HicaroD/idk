@@ -95,8 +95,12 @@ impl Lexer {
         }
     }
 
+    fn is_eof(&self) -> bool {
+        self.position >= self.source_code.len()
+    }
+
     fn advance(&mut self) {
-        if self.position < self.source_code.len() {
+        if !self.is_eof() {
             self.current_char = self.source_code[self.position];
             self.position += 1;
         } else {
@@ -137,12 +141,11 @@ impl Lexer {
         let mut identifier = String::from(self.current_char);
         self.advance();
 
-        while (self.current_char.is_alphanumeric() || self.current_char == '_') {
+        while (self.current_char.is_alphanumeric() || self.current_char == '_') && !self.is_eof() {
             identifier.push(self.current_char);
             self.advance();
         }
 
-        self.advance();
         Token::Identifier(identifier)
     }
 
@@ -150,13 +153,11 @@ impl Lexer {
         let mut number = String::from(self.current_char);
         self.advance();
 
-        while (self.current_char.is_ascii_digit() || self.current_char == '.') {
-            println!("ARE YOU SERIOUS? WHY IS IT STUCK HERE?");
+        while (self.current_char.is_ascii_digit() || self.current_char == '.') && !self.is_eof() {
             number.push(self.current_char);
             self.advance();
         }
 
-        self.advance();
         Token::Number(number)
     }
 
@@ -282,7 +283,8 @@ impl Lexer {
         let mut tokens: Vec<Token> = vec![];
 
         self.advance();
-        loop {
+
+        while !self.is_eof() {
             let token = self.get_token();
 
             if let Token::Identifier(ref ident) = token {
