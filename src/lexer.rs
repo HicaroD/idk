@@ -2,47 +2,52 @@ use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Token {
-    SpecialChar(SpecialCharId),
     Keyword(KeywordId),
-    Operator(OperatorId),
-    RelOperator(RelOperatorId),
-    UnaryOperator(UnaryOperatorId),
-    BitwiseOperator(BitwiseOperatorId),
-    LogicOperator(LogicOperatorId),
+
     Number(String),
     StringValue(String),
     Identifier(String),
-    EOF,
-}
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum BitwiseOperatorId {
-    And, // &
-    Or,  // |
-}
+    // Special characters
+    Colon,
+    LeftBracket,
+    RightBracket,
+    LeftCurly,
+    RightCurly,
+    LeftPar,
+    RightPar,
+    Semicolon,
+    EqualSign,
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum LogicOperatorId {
-    And, // &&
-    Or,  // ||
-}
+    // Operator
+    Plus,
+    Minus,
+    Mod,
+    Divides,
+    Times,
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum UnaryOperatorId {
-    Minus,     // -
+    // Relational operator
+    GreaterThan,
+    LessThan,
+    GreaterThanOrEqual,
+    LessThanOrEqual,
+    NotEqual,
+    EqualTo,
+
+    // Unary operator
     Increment, // ++
     Decrement, // --
     Not,       // !
-}
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum SpecialCharId {
-    Colon,
-    Parenthesis(char),
-    CurlyBrace(char),
-    Bracket(char),
-    Semicolon,
-    EqualSign,
+    // Logic operator
+    LogicAnd, // &&
+    LogicOr,  // ||
+
+    // Bitwise operator
+    BitwiseAnd, // &
+    BitwiseOr,  // |
+
+    EOF,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -56,25 +61,6 @@ pub enum KeywordId {
     Float,
     Bool,
     StringKeyword,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum OperatorId {
-    Plus,
-    Minus,
-    Mod,
-    Divides,
-    Times,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum RelOperatorId {
-    GreaterThan,
-    LessThan,
-    GreaterThanOrEqual,
-    LessThanOrEqual,
-    NotEqual, // !=
-    EqualTo,  // ==
 }
 
 pub struct Lexer {
@@ -185,108 +171,103 @@ impl Lexer {
 
             '"' => self.get_string(),
 
-            ':' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::Colon)),
+            ':' => self.consume_and_advance(Token::Colon),
 
-            '(' | ')' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::Parenthesis(
-                self.current_char,
-            ))),
+            '(' => self.consume_and_advance(Token::LeftPar),
 
-            '{' | '}' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::CurlyBrace(
-                self.current_char,
-            ))),
+            ')' => self.consume_and_advance(Token::RightPar),
 
-            ';' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::Semicolon)),
+            '{' => self.consume_and_advance(Token::LeftCurly),
 
-            '[' | ']' => self.consume_and_advance(Token::SpecialChar(SpecialCharId::Bracket(
-                self.current_char,
-            ))),
+            '}' => self.consume_and_advance(Token::RightCurly),
+
+            ';' => self.consume_and_advance(Token::Semicolon),
+
+            '[' => self.consume_and_advance(Token::LeftBracket),
+
+            ']' => self.consume_and_advance(Token::RightBracket),
 
             '=' => {
                 self.advance();
 
                 if self.current_char == '=' {
-                    return self.consume_and_advance(Token::RelOperator(RelOperatorId::EqualTo));
+                    return self.consume_and_advance(Token::EqualTo);
                 }
 
-                return Token::SpecialChar(SpecialCharId::EqualSign);
+                return Token::EqualSign;
             }
 
             '>' => {
                 self.advance();
 
                 if self.current_char == '=' {
-                    return self.consume_and_advance(Token::RelOperator(
-                        RelOperatorId::GreaterThanOrEqual,
-                    ));
+                    return self.consume_and_advance(Token::GreaterThanOrEqual);
                 }
 
-                return Token::RelOperator(RelOperatorId::GreaterThan);
+                return Token::GreaterThan;
             }
 
             '<' => {
                 self.advance();
 
                 if self.current_char == '=' {
-                    return self
-                        .consume_and_advance(Token::RelOperator(RelOperatorId::LessThanOrEqual));
+                    return self.consume_and_advance(Token::LessThanOrEqual);
                 }
 
-                return Token::RelOperator(RelOperatorId::LessThan);
+                return Token::LessThan;
             }
 
             '+' => {
                 self.advance();
 
                 if self.current_char == '+' {
-                    return self
-                        .consume_and_advance(Token::UnaryOperator(UnaryOperatorId::Increment));
+                    return self.consume_and_advance(Token::Increment);
                 }
 
-                return Token::Operator(OperatorId::Plus);
+                return Token::Plus;
             }
 
             '-' => {
                 self.advance();
 
                 if self.current_char == '-' {
-                    return self
-                        .consume_and_advance(Token::UnaryOperator(UnaryOperatorId::Decrement));
+                    return self.consume_and_advance(Token::Decrement);
                 }
-                return Token::Operator(OperatorId::Minus);
+                return Token::Minus;
             }
 
             '!' => {
                 self.advance();
 
                 if self.current_char == '=' {
-                    return self.consume_and_advance(Token::RelOperator(RelOperatorId::NotEqual));
+                    return self.consume_and_advance(Token::NotEqual);
                 }
-                return Token::UnaryOperator(UnaryOperatorId::Not);
+                return Token::Not;
             }
 
             '|' => {
                 self.advance();
 
                 if self.current_char == '|' {
-                    return self.consume_and_advance(Token::LogicOperator(LogicOperatorId::Or));
+                    return self.consume_and_advance(Token::LogicOr);
                 }
-                return Token::BitwiseOperator(BitwiseOperatorId::Or);
+                return Token::BitwiseOr;
             }
 
             '&' => {
                 self.advance();
 
                 if self.current_char == '&' {
-                    return self.consume_and_advance(Token::LogicOperator(LogicOperatorId::And));
+                    return self.consume_and_advance(Token::LogicAnd);
                 }
-                return Token::BitwiseOperator(BitwiseOperatorId::And);
+                return Token::BitwiseAnd;
             }
 
-            '/' => self.consume_and_advance(Token::Operator(OperatorId::Divides)),
+            '/' => self.consume_and_advance(Token::Divides),
 
-            '*' => self.consume_and_advance(Token::Operator(OperatorId::Times)),
+            '*' => self.consume_and_advance(Token::Times),
 
-            '%' => self.consume_and_advance(Token::Operator(OperatorId::Mod)),
+            '%' => self.consume_and_advance(Token::Mod),
 
             _ => {
                 eprintln!("Error: Invalid token '{:?}'", self.current_char);
