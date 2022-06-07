@@ -165,7 +165,7 @@ impl Lexer {
         self.skip_any_whitespace();
 
         match self.current_char {
-            letter if self.current_char.is_alphabetic() => self.get_identifier(),
+            letter if letter.is_alphabetic() => self.get_identifier(),
 
             digit if digit.is_ascii_digit() => self.get_number(),
 

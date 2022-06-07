@@ -38,6 +38,7 @@ impl Parser {
 
     fn parse_type(&self) -> Result<Type, String> {
         println!("PARSING TYPE: {:?}", self.current_token);
+
         if let Token::Keyword(keyword_id) = self.current_token {
             match keyword_id {
                 KeywordId::Int => Ok(Type::Int),
@@ -74,7 +75,13 @@ impl Parser {
             Token::Number(number) => {
                 // FIXME: Bad assumption that this code will never failure
                 let value = f64::from_str(&number).unwrap();
-                Ok(Expression::Number(value))
+                let mut number_type = Type::Int;
+
+                if number.contains('.') {
+                    number_type = Type::Float;
+                }
+
+                Ok(Expression::Number(number_type, value))
             }
 
             Token::StringValue(string) => Ok(Expression::StringExpr(string.to_string())),

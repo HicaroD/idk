@@ -8,7 +8,7 @@ pub enum Type {
 
 #[derive(Debug, Clone)]
 pub enum Expression {
-    Number(f64),
+    Number(Type, f64),
     StringExpr(String),
 }
 
