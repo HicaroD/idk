@@ -85,7 +85,7 @@ impl Parser {
 
     fn parse_semicolon(&self) -> Result<(), String> {
         println!("PARSING SEMICOLON: {:?}", self.current_token);
-        if self.current_token != Token::SpecialChar(SpecialCharId::Semicolon) {
+        if self.current_token != Token::Semicolon {
             Err(format!("Expected semicolon at the end of statement"))
         } else {
             Ok(())
@@ -94,7 +94,7 @@ impl Parser {
 
     fn parse_equal_sign(&self) -> Result<(), String> {
         println!("PARSING EQUAL SIGN: {:?}", self.current_token);
-        if self.current_token != Token::SpecialChar(SpecialCharId::EqualSign) {
+        if self.current_token != Token::EqualSign {
             Err(format!("Expected an equal sign"))
         } else {
             Ok(())
