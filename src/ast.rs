@@ -7,7 +7,10 @@ pub enum Type {
 }
 
 #[derive(Debug, Clone)]
-pub enum Expression {
+pub struct Expression(Vec<ExpressionComponents>);
+
+#[derive(Debug, Clone)]
+pub enum ExpressionComponents {
     Number(Type, f64),
     StringExpr(String),
 }

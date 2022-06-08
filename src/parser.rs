@@ -1,5 +1,6 @@
 use crate::ast::*;
 use crate::lexer::*;
+use std::collections::HashSet;
 use std::str::FromStr;
 
 pub struct Parser {
@@ -24,15 +25,30 @@ impl Parser {
         }
     }
 
-    // TODO: Refactor this function (it will get worse when I extend the language with more types)
-    fn is_data_type(&self) -> bool {
-        match self.current_token {
-            Token::Keyword(KeywordId::Int)
-            | Token::Keyword(KeywordId::Float)
-            | Token::Keyword(KeywordId::Bool)
-            | Token::Keyword(KeywordId::StringKeyword) => true,
+    // TODO: Refactor this function (HashSet could help)
+    fn is_operator(&self) -> bool {
+        let operators: HashSet<Token> = HashSet::from([
+            Token::Plus,
+            Token::Minus,
+            Token::Mod,
+            Token::Divides,
+            Token::Times,
+        ]);
+        operators.get(&self.current_token).is_some()
+    }
 
-            _ => false,
+    fn is_data_type(&self) -> bool {
+        let data_types: HashSet<KeywordId> = HashSet::from([
+            KeywordId::Int,
+            KeywordId::Float,
+            KeywordId::Bool,
+            KeywordId::StringKeyword,
+        ]);
+
+        if let Token::Keyword(keyword) = self.current_token {
+            data_types.get(&keyword).is_some()
+        } else {
+            false
         }
     }
 
@@ -69,25 +85,49 @@ impl Parser {
         return Err(format!("Invalid statement"));
     }
 
-    fn parse_expression(&mut self) -> Result<Expression, String> {
-        println!("PARSING EXPRESSION: {:?}", self.current_token);
-        match &self.current_token {
-            Token::Number(number) => {
-                // FIXME: Bad assumption that this code will never failure
-                let value = f64::from_str(&number).unwrap();
-                let mut number_type = Type::Int;
+    fn parse_number(&self, number: &str) -> ExpressionComponents {
+        // FIXME: Bad assumption that this code will never failure
+        let value = f64::from_str(&number).unwrap();
+        let mut number_type = Type::Int;
 
-                if number.contains('.') {
-                    number_type = Type::Float;
+        if number.contains('.') {
+            number_type = Type::Float;
+        }
+
+        ExpressionComponents::Number(number_type, value)
+    }
+
+    fn parse_expression(&mut self) -> Result<(), String> {
+        println!("PARSING EXPRESSION: {:?}", self.current_token);
+        let operators: Vec<Token> = vec![];
+
+        // will contain an AST
+        let output: Vec<Token> = vec![];
+
+        while self.current_token != Token::Semicolon {
+            match &self.current_token {
+                Token::Number(number) => {
+                    let number = self.parse_number(&number);
+                    output.push(number);
+                    self.advance();
+                    Ok(())
                 }
 
-                Ok(Expression::Number(number_type, value))
-            }
+                Token::LeftPar => {
+                    operators.push(self.current_token);
+                    self.advance();
+                    Ok(())
+                }
 
-            Token::StringValue(string) => Ok(Expression::StringExpr(string.to_string())),
+                operator if self.is_operator() => {
+                    self.advance();
+                    Ok(())
+                }
 
-            _ => Err(format!("Invalid expression")),
+                _ => Err(format!("Invalid expression")),
+            };
         }
+        Ok(())
     }
 
     fn parse_semicolon(&self) -> Result<(), String> {
