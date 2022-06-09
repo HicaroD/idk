@@ -97,6 +97,16 @@ impl Parser {
         ExpressionComponents::Number(number_type, value)
     }
 
+    fn get_precedence(&self, token: Token) -> i8 {
+        match token {
+            Token::Plus => 1,
+            Token::Minus => 1,
+            Token::Times => 2,
+            Token::Divides => 2,
+            _ => -1,
+        }
+    }
+
     fn parse_expression(&mut self) -> Result<(), String> {
         println!("PARSING EXPRESSION: {:?}", self.current_token);
         let operators: Vec<Token> = vec![];
@@ -113,19 +123,45 @@ impl Parser {
                     Ok(())
                 }
 
+                operator if self.is_operator() => {
+                    self.advance();
+                    Ok(())
+                }
+
                 Token::LeftPar => {
                     operators.push(self.current_token);
                     self.advance();
                     Ok(())
                 }
 
-                operator if self.is_operator() => {
-                    self.advance();
-                    Ok(())
+                Token::RightPar => {
+                    let left_parenthesis_found = false;
+
+                    while !operators.is_empty() {
+                        let operator = *operators.last().unwrap();
+                        if operator == Token::LeftPar {
+                            left_parenthesis_found = true;
+                            break;
+                        }
+                        output.push(operator);
+                    }
+
+                    if operators.is_empty() && !left_parenthesis_found {
+                        return Err("Mismatched parenthesis".to_string());
+                    }
+                    return Ok(());
                 }
 
-                _ => Err(format!("Invalid expression")),
+                _ => Err("Invalid expressions"),
             };
+
+            while !operators.is_empty() {
+                let operator = *operators.last().unwrap();
+                if operator == Token::LeftPar || operator == Token::RightPar {
+                    return Err("Mismatched parenthesis".to_string());
+                }
+                output.push(operator);
+            }
         }
         Ok(())
     }
