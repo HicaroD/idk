@@ -55,8 +55,8 @@ impl Parser {
     fn parse_type(&self) -> Result<Type, String> {
         println!("PARSING TYPE: {:?}", self.current_token);
 
-        if let Token::Keyword(keyword_id) = self.current_token {
-            match keyword_id {
+        if let Token::Keyword(keyword) = self.current_token {
+            match keyword {
                 KeywordId::Int => Ok(Type::Int),
                 KeywordId::Float => Ok(Type::Float),
                 KeywordId::Bool => Ok(Type::Bool),
