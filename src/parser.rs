@@ -85,7 +85,7 @@ impl Parser {
         return Err(format!("Invalid statement"));
     }
 
-    fn parse_number(&self, number: &str) -> ExpressionComponents {
+    fn parse_number(&self, number: &str) -> ExpressionComponent {
         // FIXME: Bad assumption that this code will never failure
         let value = f64::from_str(&number).unwrap();
         let mut number_type = Type::Int;
@@ -94,7 +94,7 @@ impl Parser {
             number_type = Type::Float;
         }
 
-        ExpressionComponents::Number(number_type, value)
+        ExpressionComponent::Number(number_type, value)
     }
 
     fn get_precedence(&self, token: Token) -> i8 {
@@ -107,7 +107,11 @@ impl Parser {
         }
     }
 
-    fn parse_expression(&mut self) -> Result<(), String> {
+    fn has_higher_precedence(&self, current_token: Token, top: Token) -> bool {
+        self.get_precedence(current_token) > self.get_precedence(top)
+    }
+
+    fn parse_expression(&mut self) -> Result<Expression, String> {
         println!("PARSING EXPRESSION: {:?}", self.current_token);
         let operators: Vec<Token> = vec![];
 
@@ -120,18 +124,15 @@ impl Parser {
                     let number = self.parse_number(&number);
                     output.push(number);
                     self.advance();
-                    Ok(())
                 }
 
                 operator if self.is_operator() => {
                     self.advance();
-                    Ok(())
                 }
 
                 Token::LeftPar => {
                     operators.push(self.current_token);
                     self.advance();
-                    Ok(())
                 }
 
                 Token::RightPar => {
@@ -149,10 +150,9 @@ impl Parser {
                     if operators.is_empty() && !left_parenthesis_found {
                         return Err("Mismatched parenthesis".to_string());
                     }
-                    return Ok(());
                 }
 
-                _ => Err("Invalid expressions"),
+                _ => return Err("Invalid expressions".to_string()),
             };
 
             while !operators.is_empty() {
