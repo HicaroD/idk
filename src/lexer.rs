@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Hash, Eq)]
 pub enum Token {
     Keyword(KeywordId),
 
@@ -50,7 +50,7 @@ pub enum Token {
     EOF,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Hash, Eq)]
 pub enum KeywordId {
     Def,
     If,
@@ -165,7 +165,7 @@ impl Lexer {
         self.skip_any_whitespace();
 
         match self.current_char {
-            letter if self.current_char.is_alphabetic() => self.get_identifier(),
+            letter if letter.is_alphabetic() => self.get_identifier(),
 
             digit if digit.is_ascii_digit() => self.get_number(),
 

@@ -7,9 +7,14 @@ pub enum Type {
 }
 
 #[derive(Debug, Clone)]
-pub enum Expression {
-    Number(f64),
-    StringExpr(String),
+pub struct Expression(Vec<ExpressionComponent>);
+
+#[derive(Debug, Clone)]
+pub enum ExpressionComponent {
+    Number(Type, f64),
+    StringLit(String),
+    Char(char),
+    Boolean(bool),
 }
 
 #[derive(Debug, Clone)]
