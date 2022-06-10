@@ -1,4 +1,3 @@
-// comment
 fn main(): int {
     int number = 12 + 12;
     float another_number = 25.15;
