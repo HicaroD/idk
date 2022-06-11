@@ -8,7 +8,9 @@ struct ASTEvaluator {}
 impl ASTEvaluator {
     fn evaluate(expression: Expression) -> Result<f64, String> {
         match expression {
-            Expression::Number(_, value) => Ok(value),
+            Expression::Int(value) => Ok(f64::from(value)),
+
+            Expression::Float(value) => Ok(value),
 
             Expression::BinaryExpr(lhs, operation, rhs) => {
                 let left = ASTEvaluator::evaluate(*lhs)?;
@@ -19,9 +21,13 @@ impl ASTEvaluator {
                     Token::Minus => Ok(left - right),
                     Token::Times => Ok(left * right),
                     Token::Divides => Ok(left / right),
-                    _ => Err(format!("Operator not implemented: {:?}", operation)),
+                    _ => Err(format!(
+                        "Operator not implemented or invalid: {:?}",
+                        operation
+                    )),
                 }
             }
+
             _ => Err(format!("Expression not implemented: {:?}", expression)),
         }
     }
@@ -109,16 +115,18 @@ impl Parser {
         return Err(format!("Invalid statement"));
     }
 
-    fn parse_number(&self, number: &str) -> Expression {
-        // FIXME: Bad assumption that this code will never failure
-        let value = f64::from_str(&number).unwrap();
-        let mut number_type = Type::Int;
-
+    fn parse_number(&self, number: &str) -> Result<Expression, String> {
         if number.contains('.') {
-            number_type = Type::Float;
+            match f64::from_str(&number) {
+                Ok(value) => Ok(Expression::Float(value)),
+                Err(err) => Err(format!("Couldn't parse float value: {:?}", err)),
+            }
+        } else {
+            match i32::from_str(&number) {
+                Ok(value) => Ok(Expression::Int(value)),
+                Err(err) => Err(format!("Couldn't parse integer value: {:?}", err)),
+            }
         }
-
-        Expression::Number(number_type, value)
     }
 
     fn get_precedence(&self, token: Token) -> i8 {
@@ -139,10 +147,12 @@ impl Parser {
         // TODO: Parse expression to an AST
         println!("PARSING EXPRESSION: {:?}", self.current_token);
 
-        let lhs = Box::new(Expression::Number(Type::Int, 2.0));
-        let rhs = Box::new(Expression::Number(Type::Int, 10.0));
+        // (2 + 5) ** 2 --> 49
 
-        let expression = Expression::BinaryExpr(rhs, Token::Times, lhs);
+        // let expression = Expression::BinaryExpr(rhs, Token::Times, lhs);
+        let lhs = Box::new(Expression::Int(2));
+        let rhs = Box::new(Expression::Int(5));
+        let expression = Expression::BinaryExpr(lhs, Token::Plus, rhs);
         Ok(expression)
     }
 

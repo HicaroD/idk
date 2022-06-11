@@ -11,7 +11,8 @@ pub enum Type {
 
 #[derive(Debug, Clone)]
 pub enum Expression {
-    Number(Type, f64),
+    Float(f64),
+    Int(i32),
     StringLit(String),
     Char(char),
     Boolean(bool),
