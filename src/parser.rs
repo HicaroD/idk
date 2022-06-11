@@ -3,6 +3,30 @@ use crate::lexer::*;
 use std::collections::HashSet;
 use std::str::FromStr;
 
+struct ASTEvaluator {}
+
+impl ASTEvaluator {
+    fn evaluate(expression: Expression) -> Result<f64, String> {
+        match expression {
+            Expression::Number(_, value) => Ok(value),
+
+            Expression::BinaryExpr(lhs, operation, rhs) => {
+                let left = ASTEvaluator::evaluate(*lhs)?;
+                let right = ASTEvaluator::evaluate(*rhs)?;
+
+                match operation {
+                    Token::Plus => Ok(left + right),
+                    Token::Minus => Ok(left - right),
+                    Token::Times => Ok(left * right),
+                    Token::Divides => Ok(left / right),
+                    _ => Err(format!("Operator not implemented: {:?}", operation)),
+                }
+            }
+            _ => Err(format!("Expression not implemented: {:?}", expression)),
+        }
+    }
+}
+
 pub struct Parser {
     tokens: Vec<Token>,
     current_token: Token,
@@ -85,7 +109,7 @@ impl Parser {
         return Err(format!("Invalid statement"));
     }
 
-    fn parse_number(&self, number: &str) -> ExpressionComponent {
+    fn parse_number(&self, number: &str) -> Expression {
         // FIXME: Bad assumption that this code will never failure
         let value = f64::from_str(&number).unwrap();
         let mut number_type = Type::Int;
@@ -94,7 +118,7 @@ impl Parser {
             number_type = Type::Float;
         }
 
-        ExpressionComponent::Number(number_type, value)
+        Expression::Number(number_type, value)
     }
 
     fn get_precedence(&self, token: Token) -> i8 {
@@ -112,58 +136,14 @@ impl Parser {
     }
 
     fn parse_expression(&mut self) -> Result<Expression, String> {
+        // TODO: Parse expression to an AST
         println!("PARSING EXPRESSION: {:?}", self.current_token);
-        let operators: Vec<Token> = vec![];
 
-        // will contain an AST
-        let output: Vec<Token> = vec![];
+        let lhs = Box::new(Expression::Number(Type::Int, 2.0));
+        let rhs = Box::new(Expression::Number(Type::Int, 10.0));
 
-        while self.current_token != Token::Semicolon {
-            match &self.current_token {
-                Token::Number(number) => {
-                    let number = self.parse_number(&number);
-                    output.push(number);
-                    self.advance();
-                }
-
-                operator if self.is_operator() => {
-                    self.advance();
-                }
-
-                Token::LeftPar => {
-                    operators.push(self.current_token);
-                    self.advance();
-                }
-
-                Token::RightPar => {
-                    let left_parenthesis_found = false;
-
-                    while !operators.is_empty() {
-                        let operator = *operators.last().unwrap();
-                        if operator == Token::LeftPar {
-                            left_parenthesis_found = true;
-                            break;
-                        }
-                        output.push(operator);
-                    }
-
-                    if operators.is_empty() && !left_parenthesis_found {
-                        return Err("Mismatched parenthesis".to_string());
-                    }
-                }
-
-                _ => return Err("Invalid expressions".to_string()),
-            };
-
-            while !operators.is_empty() {
-                let operator = *operators.last().unwrap();
-                if operator == Token::LeftPar || operator == Token::RightPar {
-                    return Err("Mismatched parenthesis".to_string());
-                }
-                output.push(operator);
-            }
-        }
-        Ok(())
+        let expression = Expression::BinaryExpr(rhs, Token::Times, lhs);
+        Ok(expression)
     }
 
     fn parse_semicolon(&self) -> Result<(), String> {
@@ -200,6 +180,9 @@ impl Parser {
         let expression = self.parse_expression()?;
         self.advance();
         self.parse_semicolon()?;
+
+        let evaluated_expression = ASTEvaluator::evaluate(expression.clone())?;
+        println!("EVALUATED EXPRESSION: {}", evaluated_expression);
         Ok(Variable::new(var_type, name, expression))
     }
 
