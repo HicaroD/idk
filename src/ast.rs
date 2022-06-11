@@ -1,3 +1,6 @@
+use crate::lexer::Token;
+use std::boxed::Box;
+
 #[derive(Debug, Clone)]
 pub enum Type {
     Int,
@@ -7,14 +10,13 @@ pub enum Type {
 }
 
 #[derive(Debug, Clone)]
-pub struct Expression(Vec<ExpressionComponent>);
-
-#[derive(Debug, Clone)]
-pub enum ExpressionComponent {
-    Number(Type, f64),
+pub enum Expression {
+    Float(f64),
+    Int(i32),
     StringLit(String),
     Char(char),
     Boolean(bool),
+    BinaryExpr(Box<Expression>, Token, Box<Expression>),
 }
 
 #[derive(Debug, Clone)]
