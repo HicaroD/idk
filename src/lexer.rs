@@ -25,6 +25,7 @@ pub enum Token {
     Mod,
     Divides,
     Times,
+    Power, // **
 
     // Relational operator
     GreaterThan,
@@ -265,7 +266,14 @@ impl Lexer {
 
             '/' => self.consume_and_advance(Token::Divides),
 
-            '*' => self.consume_and_advance(Token::Times),
+            '*' => {
+                self.advance();
+
+                if self.current_char == '*' {
+                    self.consume_and_advance(Token::Power);
+                }
+                return Token::Times;
+            }
 
             '%' => self.consume_and_advance(Token::Mod),
 
