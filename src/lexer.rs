@@ -394,10 +394,8 @@ mod tests {
         let mut lexer = Lexer::new(input);
         let tokens = lexer.tokenize();
 
-        let expected_result: Vec<Token> = vec![
-            Token::StringValue("my string here".to_string()),
-            Token::EOF,
-        ];
+        let expected_result: Vec<Token> =
+            vec![Token::StringValue("my string here".to_string()), Token::EOF];
 
         assert_eq!(tokens, expected_result);
     }
