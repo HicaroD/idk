@@ -1,6 +1,13 @@
 use crate::lexer::Token;
 use std::boxed::Box;
 
+#[derive(PartialEq)]
+pub enum Associativity {
+    Left,
+    Right,
+    Undefined,
+}
+
 #[derive(Debug, Clone)]
 pub enum Type {
     Int,
