@@ -18,6 +18,7 @@ pub enum Token {
     RightPar,
     Semicolon,
     EqualSign,
+    Comma,
 
     // Operator
     Plus,
@@ -184,6 +185,8 @@ impl Lexer {
 
             ';' => self.consume_and_advance(Token::Semicolon),
 
+            ',' => self.consume_and_advance(Token::Comma),
+
             '[' => self.consume_and_advance(Token::LeftBracket),
 
             ']' => self.consume_and_advance(Token::RightBracket),
@@ -270,7 +273,7 @@ impl Lexer {
                 self.advance();
 
                 if self.current_char == '*' {
-                    self.consume_and_advance(Token::Power);
+                    return self.consume_and_advance(Token::Power);
                 }
                 return Token::Times;
             }
@@ -309,8 +312,79 @@ impl Lexer {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
     #[test]
-    fn it_works() {
-        assert_eq!(10, 10);
+    fn test_variable_declaration_tokens() {
+        let input = "int variable_name = 12;\n".chars().collect::<Vec<char>>();
+        let mut lexer = Lexer::new(input);
+        let tokens = lexer.tokenize();
+
+        let expected_result: Vec<Token> = vec![
+            Token::Keyword(KeywordId::Int),
+            Token::Identifier("variable_name".to_string()),
+            Token::EqualSign,
+            Token::Number("12".to_string()),
+            Token::Semicolon,
+            Token::EOF,
+        ];
+
+        assert_eq!(tokens, expected_result);
+    }
+
+    #[test]
+    fn test_operators() {
+        let input = "> < >= <= == != / * + - ** ++ -- ! && || & |\n"
+            .chars()
+            .collect::<Vec<char>>();
+        let mut lexer = Lexer::new(input);
+        let tokens = lexer.tokenize();
+
+        let expected_result: Vec<Token> = vec![
+            Token::GreaterThan,
+            Token::LessThan,
+            Token::GreaterThanOrEqual,
+            Token::LessThanOrEqual,
+            Token::EqualTo,
+            Token::NotEqual,
+            Token::Divides,
+            Token::Times,
+            Token::Plus,
+            Token::Minus,
+            Token::Power,
+            Token::Increment,
+            Token::Decrement,
+            Token::Not,
+            Token::LogicAnd,
+            Token::LogicOr,
+            Token::BitwiseAnd,
+            Token::BitwiseOr,
+            Token::EOF,
+        ];
+
+        assert_eq!(tokens, expected_result);
+    }
+
+    #[test]
+    fn test_special_characters() {
+        let input = "{ } [ ] ( ) = , ; :".chars().collect::<Vec<char>>();
+        let mut lexer = Lexer::new(input);
+        let tokens = lexer.tokenize();
+
+        let expected_result: Vec<Token> = vec![
+            Token::LeftCurly,
+            Token::RightCurly,
+            Token::LeftBracket,
+            Token::RightBracket,
+            Token::LeftPar,
+            Token::RightPar,
+            Token::EqualSign,
+            Token::Comma,
+            Token::Semicolon,
+            Token::Colon,
+            Token::EOF,
+        ];
+
+        assert_eq!(tokens, expected_result);
     }
 }
