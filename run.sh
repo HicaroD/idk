@@ -5,5 +5,6 @@ then
     echo "You should pass an input file"
 else
     cargo fmt
+    cargo test
     cargo run -- $1
 fi
