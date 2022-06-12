@@ -26,7 +26,7 @@ impl Helpers {
         ]);
 
         if let Token::Keyword(keyword) = token {
-            data_types.get(&keyword).is_some()
+            data_types.get(keyword).is_some()
         } else {
             false
         }
@@ -343,5 +343,13 @@ impl Parser {
         }
 
         Ok(statements)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn it_works() {
+        assert_eq!(10, 10);
     }
 }
