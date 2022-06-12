@@ -3,9 +3,40 @@ use crate::lexer::*;
 use std::collections::HashSet;
 use std::str::FromStr;
 
+struct Helpers {}
+
+impl Helpers {
+    fn is_operator(token: &Token) -> bool {
+        let operators: HashSet<Token> = HashSet::from([
+            Token::Plus,
+            Token::Minus,
+            Token::Mod,
+            Token::Divides,
+            Token::Times,
+        ]);
+        operators.get(token).is_some()
+    }
+
+    fn is_data_type_keyword(token: &Token) -> bool {
+        let data_types: HashSet<KeywordId> = HashSet::from([
+            KeywordId::Int,
+            KeywordId::Float,
+            KeywordId::Bool,
+            KeywordId::StringKeyword,
+        ]);
+
+        if let Token::Keyword(keyword) = token {
+            data_types.get(&keyword).is_some()
+        } else {
+            false
+        }
+    }
+}
+
 struct ASTEvaluator {}
 
 impl ASTEvaluator {
+    // TODO: The result of an expression is not always an f64
     fn evaluate(expression: Expression) -> Result<f64, String> {
         match expression {
             Expression::Int(value) => Ok(f64::from(value)),
@@ -55,30 +86,34 @@ impl Parser {
         }
     }
 
-    // TODO: Refactor this function (HashSet could help)
-    fn is_operator(&self) -> bool {
-        let operators: HashSet<Token> = HashSet::from([
-            Token::Plus,
-            Token::Minus,
-            Token::Mod,
-            Token::Divides,
-            Token::Times,
-        ]);
-        operators.get(&self.current_token).is_some()
-    }
+    fn from_rpn_to_ast(&self, rpn: Vec<Token>) -> Result<Expression, String> {
+        let mut expressions: Vec<Expression> = vec![];
 
-    fn is_data_type(&self) -> bool {
-        let data_types: HashSet<KeywordId> = HashSet::from([
-            KeywordId::Int,
-            KeywordId::Float,
-            KeywordId::Bool,
-            KeywordId::StringKeyword,
-        ]);
+        for token in rpn.iter() {
+            match token {
+                Token::Number(value) => {
+                    println!("ADD NUMBER TO STACK {:?}", value);
+                    expressions.push(self.parse_number(value)?);
+                }
 
-        if let Token::Keyword(keyword) = self.current_token {
-            data_types.get(&keyword).is_some()
+                operator if Helpers::is_operator(&operator) => {
+                    if expressions.len() >= 2 {
+                        let rhs = Box::new(expressions.pop().unwrap());
+                        let lhs = Box::new(expressions.pop().unwrap());
+                        expressions.push(Expression::BinaryExpr(lhs, operator.clone(), rhs));
+                    } else {
+                        return Err(format!("Error: Invalid expression"));
+                    }
+                }
+
+                _ => return Err(format!("Invalid token on RPN expression")),
+            }
+        }
+
+        if expressions.len() == 1 {
+            Ok(expressions[0].clone())
         } else {
-            false
+            Err(format!("Error: Invalid RPN expression"))
         }
     }
 
@@ -109,7 +144,7 @@ impl Parser {
 
     fn parse_statement(&mut self) -> Result<Statement, String> {
         println!("PARSING STATEMENT: {:?}", self.current_token);
-        if self.is_data_type() {
+        if Helpers::is_data_type_keyword(&self.current_token) {
             return Ok(Statement::Assignment(self.parse_assignment()?));
         }
         return Err(format!("Invalid statement"));
@@ -129,6 +164,13 @@ impl Parser {
         }
     }
 
+    fn get_associativity(&self, operator: Token) -> Associativity {
+        match operator {
+            Token::Plus | Token::Minus | Token::Times | Token::Divides => Associativity::Left,
+            _ => Associativity::Undefined,
+        }
+    }
+
     fn get_precedence(&self, token: Token) -> i8 {
         match token {
             Token::Plus => 1,
@@ -139,21 +181,115 @@ impl Parser {
         }
     }
 
-    fn has_higher_precedence(&self, current_token: Token, top: Token) -> bool {
-        self.get_precedence(current_token) > self.get_precedence(top)
+    fn has_higher_precedence(&self, first_token: Token, second_token: Token) -> bool {
+        self.get_precedence(first_token) > self.get_precedence(second_token)
+    }
+
+    fn has_same_precedence(&self, first_token: Token, second_token: Token) -> bool {
+        self.get_precedence(first_token) == self.get_precedence(second_token)
+    }
+
+    fn is_end_of_statement(&self) -> bool {
+        self.current_token == Token::Semicolon
+    }
+
+    fn get_rpn_expression(&mut self) -> Result<Vec<Token>, String> {
+        let mut operators: Vec<Token> = vec![];
+        let mut operands: Vec<Token> = vec![];
+
+        loop {
+            println!("CURRENT TOKEN: {:?}", self.current_token);
+            if self.is_end_of_statement() {
+                break;
+            }
+
+            match &self.current_token {
+                Token::Number(_) => {
+                    println!("ADDING NUMBER TO OPERANDS: {:?}", self.current_token);
+                    operands.push(self.current_token.clone());
+                }
+
+                Token::LeftPar => {
+                    println!(
+                        "ADDING LEFT PARENTHESIS TO OPERATORS: {:?}",
+                        self.current_token
+                    );
+                    operators.push(self.current_token.clone());
+                }
+
+                Token::RightPar => {
+                    println!("FOUND RIGHT PARENTHESIS");
+
+                    let mut found_left_parenthesis = false;
+                    while !operators.is_empty() {
+                        if *operators.last().unwrap() == Token::LeftPar {
+                            println!("FOUND LEFT PARENTHESIS");
+                            found_left_parenthesis = true;
+                            break;
+                        } else {
+                            let op = operators.pop().unwrap();
+                            operands.push(op);
+                        }
+                    }
+
+                    if operators.is_empty() && !found_left_parenthesis {
+                        return Err(format!("Error: Left parenthesis not found"));
+                    } else {
+                        // DISCARD LEFT PARENTHESIS AT THE TOP
+                        println!("FOUND LEFT PARENTHESIS -> DISCARDING NOW");
+                        operators.pop().unwrap();
+                    }
+                }
+
+                // TODO: Refactor excessive clone
+                op if Helpers::is_operator(&op) => {
+                    println!("FOUND OPERATOR: {:?}", op);
+                    while !operators.is_empty() {
+                        let top = operators.last().unwrap().clone();
+                        println!("TOP OPERATOR ON OPERATOR MATCHING: {:?}", top);
+                        println!("CURRENT OPERATOR ON OPERATOR MATCHING: {:?}", op);
+                        if top == Token::LeftPar {
+                            break;
+                        }
+                        if self.has_higher_precedence(top.clone(), op.clone())
+                            || self.has_same_precedence(top.clone(), op.clone())
+                                && self.get_associativity(op.clone()) == Associativity::Left
+                        {
+                            println!("IS {:?} LOWER THAN {:?}", op, top);
+                            operands.push(operators.pop().unwrap());
+                        } else {
+                            break;
+                        }
+                    }
+                    operators.push(op.clone());
+                }
+
+                _ => {
+                    return Err(format!("Error: Invalid token: {:?}", self.current_token));
+                }
+            };
+
+            println!("ADVANCING TOKEN: {:?}", self.current_token);
+            self.advance();
+        }
+
+        while !operators.is_empty() {
+            let top = operators.last().unwrap().clone();
+            if top == Token::LeftPar {
+                return Err(format!("Error: Mismatched parenthesis"));
+            }
+            operands.push(operators.pop().unwrap());
+        }
+
+        Ok(operands)
     }
 
     fn parse_expression(&mut self) -> Result<Expression, String> {
-        // TODO: Parse expression to an AST
         println!("PARSING EXPRESSION: {:?}", self.current_token);
-
-        // (2 + 5) ** 2 --> 49
-
-        // let expression = Expression::BinaryExpr(rhs, Token::Times, lhs);
-        let lhs = Box::new(Expression::Int(2));
-        let rhs = Box::new(Expression::Int(5));
-        let expression = Expression::BinaryExpr(lhs, Token::Plus, rhs);
-        Ok(expression)
+        let rpn_expression = self.get_rpn_expression()?;
+        let ast = self.from_rpn_to_ast(rpn_expression)?;
+        println!("AST: {:?}", ast);
+        Ok(ast)
     }
 
     fn parse_semicolon(&self) -> Result<(), String> {
@@ -188,7 +324,6 @@ impl Parser {
         self.parse_equal_sign()?;
         self.advance();
         let expression = self.parse_expression()?;
-        self.advance();
         self.parse_semicolon()?;
 
         let evaluated_expression = ASTEvaluator::evaluate(expression.clone())?;
