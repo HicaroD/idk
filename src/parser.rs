@@ -337,7 +337,6 @@ impl Parser {
     }
 
     fn parse_function_parameters(&mut self) -> Result<Vec<Parameter>, String> {
-        let mut parameters: Vec<Parameter> = vec![];
         if self.current_token != Token::LeftPar {
             return Err(format!(
                 "Unexpected token on function parameter parsing: {:?}",
@@ -346,13 +345,15 @@ impl Parser {
         }
         self.advance();
 
+        let mut parameters: Vec<Parameter> = vec![];
+
         while self.current_token != Token::RightPar {
             let parameter_type = self.parse_type()?;
             self.advance();
             let parameter_name = self.parse_identifier()?;
             self.advance();
 
-            if self.current_token != Token::Comma || self.current_token != Token::LeftPar {
+            if self.current_token != Token::Comma && self.current_token != Token::RightPar {
                 return Err(format!(
                     "Unexpected token on function parameter parsing: {:?}",
                     &self.current_token
@@ -392,7 +393,15 @@ impl Parser {
         return None;
     }
 
-    // fn parse_function_body(&mut self) -> Result<Vec<Ast>, String> {}
+    // TODO: Parse function body
+    fn parse_function_body(&mut self) -> Result<Vec<Ast>, String> {
+        let body: Vec<Ast> = vec![];
+        if self.current_token != Token::LeftCurly {
+            return Err(format!("Expected a left curly brace"));
+        }
+        self.advance();
+        Ok(body)
+    }
 
     fn parse_function(&mut self) -> Result<FunctionDefinition, String> {
         println!("PARSING FUNCTION: {:?}", self.current_token);
@@ -406,10 +415,8 @@ impl Parser {
 
         // Assuming that function is always well formed and "None" means "no return type"
         let return_type = self.parse_function_return_type();
-        self.advance();
 
-        // TODO: Parse function body
-        let body: Vec<Ast> = vec![];
+        let body: Vec<Ast> = self.parse_function_body()?;
 
         if self.current_token != Token::RightCurly {
             return Err(format!(
@@ -417,7 +424,7 @@ impl Parser {
                 self.current_token
             ));
         }
-
+        self.advance();
         Ok(FunctionDefinition::new(
             function_name,
             parameters,
