@@ -25,7 +25,6 @@ fn main() -> io::Result<()> {
     }
 
     let source_code = get_source_code(args[1].clone())?;
-    println!("{:?}", source_code);
 
     if source_code.len() == 0 {
         std::process::exit(1);
