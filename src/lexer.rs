@@ -54,7 +54,7 @@ pub enum Token {
 
 #[derive(Debug, Clone, Copy, PartialEq, Hash, Eq)]
 pub enum KeywordId {
-    Def,
+    Fn, // Function declaration
     If,
     Elif, // Else if
     Else,
@@ -108,7 +108,7 @@ impl Lexer {
 
     fn classify_identifier(&self, identifier: &str) -> Token {
         let keywords: HashMap<&str, KeywordId> = HashMap::from([
-            ("def", KeywordId::Def),
+            ("fn", KeywordId::Fn),
             ("if", KeywordId::If),
             ("elif", KeywordId::Elif),
             ("else", KeywordId::Else),

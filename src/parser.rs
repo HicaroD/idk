@@ -2,41 +2,37 @@ use crate::{ast::*, lexer::*};
 
 use std::{collections::HashSet, str::FromStr};
 
+fn is_operator(token: &Token) -> bool {
+    let operators: HashSet<Token> = HashSet::from([
+        Token::Plus,
+        Token::Minus,
+        Token::Mod,
+        Token::Divides,
+        Token::Times,
+    ]);
+    operators.get(token).is_some()
+}
+
+fn is_data_type_keyword(token: &Token) -> bool {
+    let data_types: HashSet<KeywordId> = HashSet::from([
+        KeywordId::Int,
+        KeywordId::Float,
+        KeywordId::Bool,
+        KeywordId::StringKeyword,
+    ]);
+
+    if let Token::Keyword(keyword) = token {
+        data_types.get(keyword).is_some()
+    } else {
+        false
+    }
+}
+
 #[derive(PartialEq)]
 pub enum Associativity {
     Left,
     Right,
     Undefined,
-}
-
-struct Helpers {}
-
-impl Helpers {
-    fn is_operator(token: &Token) -> bool {
-        let operators: HashSet<Token> = HashSet::from([
-            Token::Plus,
-            Token::Minus,
-            Token::Mod,
-            Token::Divides,
-            Token::Times,
-        ]);
-        operators.get(token).is_some()
-    }
-
-    fn is_data_type_keyword(token: &Token) -> bool {
-        let data_types: HashSet<KeywordId> = HashSet::from([
-            KeywordId::Int,
-            KeywordId::Float,
-            KeywordId::Bool,
-            KeywordId::StringKeyword,
-        ]);
-
-        if let Token::Keyword(keyword) = token {
-            data_types.get(keyword).is_some()
-        } else {
-            false
-        }
-    }
 }
 
 struct ASTEvaluator {}
@@ -102,7 +98,7 @@ impl Parser {
                     expressions.push(self.parse_number(value)?);
                 }
 
-                operator if Helpers::is_operator(&operator) => {
+                operator if is_operator(&operator) => {
                     if expressions.len() >= 2 {
                         let rhs = Box::new(expressions.pop().unwrap());
                         let lhs = Box::new(expressions.pop().unwrap());
@@ -150,7 +146,7 @@ impl Parser {
 
     fn parse_statement(&mut self) -> Result<Ast, String> {
         println!("PARSING STATEMENT: {:?}", self.current_token);
-        if Helpers::is_data_type_keyword(&self.current_token) {
+        if is_data_type_keyword(&self.current_token) {
             return Ok(Ast::Assignment(self.parse_assignment()?));
         }
         return Err(format!("Invalid statement"));
@@ -248,7 +244,7 @@ impl Parser {
                 }
 
                 // TODO: Refactor excessive clone
-                op if Helpers::is_operator(&op) => {
+                op if is_operator(&op) => {
                     println!("FOUND OPERATOR: {:?}", op);
                     while !operators.is_empty() {
                         let top = operators.last().unwrap().clone();
@@ -340,21 +336,126 @@ impl Parser {
         Ok(Variable::new(var_type, name, expression))
     }
 
+    fn parse_function_parameters(&mut self) -> Result<Vec<Parameter>, String> {
+        let mut parameters: Vec<Parameter> = vec![];
+        if self.current_token != Token::LeftPar {
+            return Err(format!(
+                "Unexpected token on function parameter parsing: {:?}",
+                &self.current_token
+            ));
+        }
+        self.advance();
+
+        while self.current_token != Token::RightPar {
+            let parameter_type = self.parse_type()?;
+            self.advance();
+            let parameter_name = self.parse_identifier()?;
+            self.advance();
+
+            if self.current_token != Token::Comma || self.current_token != Token::LeftPar {
+                return Err(format!(
+                    "Unexpected token on function parameter parsing: {:?}",
+                    &self.current_token
+                ));
+            }
+
+            parameters.push(Parameter::new(parameter_type, parameter_name));
+        }
+        Ok(parameters)
+    }
+
+    // TODO: That function can two types of errors:
+    //       Either a function declaration doesn't specify the return type or
+    //       it is not well formed
+    //
+    //       I'll need to know when these errors happen.
+    fn parse_function_return_type(&mut self) -> Option<Type> {
+        // Function with no return type
+        if self.current_token == Token::LeftCurly {
+            return None;
+        }
+        self.advance();
+
+        if self.current_token == Token::Colon {
+            self.advance();
+
+            // Function is not well formed
+            if !is_data_type_keyword(&self.current_token) {
+                return None;
+            }
+
+            // TODO: Type::Int is a just place holder, but I need to figure out the selected type
+            return Some(Type::Int);
+        }
+
+        // Function is not well formed
+        return None;
+    }
+
+    // fn parse_function_body(&mut self) -> Result<Vec<Ast>, String> {}
+
+    fn parse_function(&mut self) -> Result<FunctionDefinition, String> {
+        println!("PARSING FUNCTION: {:?}", self.current_token);
+        self.advance();
+
+        let function_name = self.parse_identifier()?;
+        self.advance();
+
+        let parameters = self.parse_function_parameters()?;
+        self.advance();
+
+        // Assuming that function is always well formed and "None" means "no return type"
+        let return_type = self.parse_function_return_type();
+        self.advance();
+
+        // TODO: Parse function body
+        let body: Vec<Ast> = vec![];
+
+        if self.current_token != Token::RightCurly {
+            return Err(format!(
+                "Unexpected token on function parsing: {:?}",
+                self.current_token
+            ));
+        }
+
+        Ok(FunctionDefinition::new(
+            function_name,
+            parameters,
+            body,
+            return_type,
+        ))
+    }
+
     pub fn generate_ast(&mut self) -> Result<Vec<Ast>, String> {
         self.advance();
         let mut ast: Vec<Ast> = vec![];
 
         while self.current_token != Token::EOF {
-            if Helpers::is_data_type_keyword(&self.current_token) {
-                let variable_declaration = self.parse_statement()?;
-                ast.push(variable_declaration.clone());
-                println!("CURRENT STATEMENT: {:?}", variable_declaration);
-                self.advance();
-            } else {
-                return Err(format!(
-                    "Error: Invalid token on AST parsing: {:?}",
-                    self.current_token
-                ));
+            match &self.current_token {
+                _ if is_data_type_keyword(&self.current_token) => {
+                    let variable_declaration = self.parse_statement()?;
+                    ast.push(variable_declaration.clone());
+                    println!("CURRENT STATEMENT: {:?}", variable_declaration);
+                    self.advance();
+                }
+
+                Token::Keyword(keyword) => match keyword {
+                    KeywordId::Fn => {
+                        let function = self.parse_function()?;
+                        println!("FUNCTION: {:?}", function);
+                        ast.push(Ast::Function(function));
+                        self.advance();
+                    }
+
+                    _ => return Err(format!("Unexpected keyword: {:?}", keyword)),
+                },
+
+                _ => {
+                    return Err(format!(
+                        "Error: Invalid token on AST parsing: {:?}",
+                        self.current_token
+                    ))
+                }
             }
         }
 

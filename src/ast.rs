@@ -36,13 +36,57 @@ impl Variable {
     }
 }
 
-// TODO: Implement function declaration
+#[derive(Debug, Clone, PartialEq)]
+pub struct Parameter {
+    parameter_type: Type,
+    name: String,
+    // TODO: add optional default value for a parameter
+}
+
+impl Parameter {
+    pub fn new(parameter_type: Type, name: String) -> Self {
+        Self {
+            parameter_type,
+            name,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct FunctionDefinition {
+    name: String,
+    parameters: Vec<Parameter>,
+    body: Vec<Ast>,
+    return_type: Option<Type>,
+}
+
+impl FunctionDefinition {
+    pub fn new(
+        name: String,
+        parameters: Vec<Parameter>,
+        body: Vec<Ast>,
+        return_type: Option<Type>,
+    ) -> Self {
+        Self {
+            name,
+            parameters,
+            body,
+            return_type,
+        }
+    }
+}
 
 // All possible nodes for an AST
 //
 // 1. Assignment
 //    int name = 12;
+//
+// 2. Function
+//    fn sum(int a, int b): int {
+//        return a + b;
+//    }
 #[derive(Debug, Clone, PartialEq)]
 pub enum Ast {
     Assignment(Variable),
+    Function(FunctionDefinition),
 }
