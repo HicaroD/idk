@@ -396,7 +396,7 @@ mod tests {
         if let Ast::Assignment(variable) = var {
             let expression = variable.value.clone();
             let value = ASTEvaluator::evaluate(expression).unwrap();
-            assert_eq!(value, 1.0 as f64);
+            assert_eq!(value, 1.0);
         } else {
             panic!("This should be a variable declaration!");
         }
