@@ -1,14 +1,7 @@
 use crate::lexer::Token;
 use std::boxed::Box;
 
-#[derive(PartialEq)]
-pub enum Associativity {
-    Left,
-    Right,
-    Undefined,
-}
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Type {
     Int,
     Float,
@@ -16,7 +9,7 @@ pub enum Type {
     StringType,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Expression {
     Float(f64),
     Int(i32),
@@ -26,12 +19,7 @@ pub enum Expression {
     BinaryExpr(Box<Expression>, Token, Box<Expression>),
 }
 
-#[derive(Debug, Clone)]
-pub enum Statement {
-    Assignment(Variable),
-}
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Variable {
     pub var_type: Type,
     pub name: String,
@@ -46,4 +34,15 @@ impl Variable {
             value,
         }
     }
+}
+
+// TODO: Implement function declaration
+
+// All possible nodes for an AST
+//
+// 1. Assignment
+//    int name = 12;
+#[derive(Debug, Clone, PartialEq)]
+pub enum Ast {
+    Assignment(Variable),
 }
