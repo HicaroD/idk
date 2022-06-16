@@ -351,16 +351,12 @@ impl Parser {
             let parameter_type = self.parse_type()?;
             self.advance();
             let parameter_name = self.parse_identifier()?;
+            parameters.push(Parameter::new(parameter_type, parameter_name));
             self.advance();
 
-            if self.current_token != Token::Comma && self.current_token != Token::RightPar {
-                return Err(format!(
-                    "Unexpected token on function parameter parsing: {:?}",
-                    &self.current_token
-                ));
+            if self.current_token == Token::Comma {
+                self.advance();
             }
-
-            parameters.push(Parameter::new(parameter_type, parameter_name));
         }
         Ok(parameters)
     }
