@@ -1,7 +1,39 @@
-use crate::ast::*;
-use crate::lexer::*;
-use std::collections::HashSet;
-use std::str::FromStr;
+use crate::{ast::*, lexer::*};
+
+use std::{collections::HashSet, str::FromStr};
+
+fn is_operator(token: &Token) -> bool {
+    let operators: HashSet<Token> = HashSet::from([
+        Token::Plus,
+        Token::Minus,
+        Token::Mod,
+        Token::Divides,
+        Token::Times,
+    ]);
+    operators.get(token).is_some()
+}
+
+fn is_data_type_keyword(token: &Token) -> bool {
+    let data_types: HashSet<KeywordId> = HashSet::from([
+        KeywordId::Int,
+        KeywordId::Float,
+        KeywordId::Bool,
+        KeywordId::StringKeyword,
+    ]);
+
+    if let Token::Keyword(keyword) = token {
+        data_types.get(keyword).is_some()
+    } else {
+        false
+    }
+}
+
+#[derive(PartialEq)]
+pub enum Associativity {
+    Left,
+    Right,
+    Undefined,
+}
 
 struct Helpers {}
 
@@ -96,7 +128,7 @@ impl Parser {
                     expressions.push(self.parse_number(value)?);
                 }
 
-                operator if Helpers::is_operator(&operator) => {
+                operator if is_operator(&operator) => {
                     if expressions.len() >= 2 {
                         let rhs = Box::new(expressions.pop().unwrap());
                         let lhs = Box::new(expressions.pop().unwrap());
@@ -142,10 +174,10 @@ impl Parser {
         }
     }
 
-    fn parse_statement(&mut self) -> Result<Statement, String> {
+    fn parse_statement(&mut self) -> Result<Ast, String> {
         println!("PARSING STATEMENT: {:?}", self.current_token);
-        if Helpers::is_data_type_keyword(&self.current_token) {
-            return Ok(Statement::Assignment(self.parse_assignment()?));
+        if is_data_type_keyword(&self.current_token) {
+            return Ok(Ast::Assignment(self.parse_assignment()?));
         }
         return Err(format!("Invalid statement"));
     }
@@ -242,7 +274,7 @@ impl Parser {
                 }
 
                 // TODO: Refactor excessive clone
-                op if Helpers::is_operator(&op) => {
+                op if is_operator(&op) => {
                     println!("FOUND OPERATOR: {:?}", op);
                     while !operators.is_empty() {
                         let top = operators.last().unwrap().clone();
@@ -287,6 +319,10 @@ impl Parser {
     fn parse_expression(&mut self) -> Result<Expression, String> {
         println!("PARSING EXPRESSION: {:?}", self.current_token);
         let rpn_expression = self.get_rpn_expression()?;
+
+        for rpn_token in rpn_expression.iter() {
+            println!("RPN: {:?}", rpn_token);
+        }
         let ast = self.from_rpn_to_ast(rpn_expression)?;
         println!("AST: {:?}", ast);
         Ok(ast)
@@ -331,17 +367,173 @@ impl Parser {
         Ok(Variable::new(var_type, name, expression))
     }
 
-    pub fn generate_ast(&mut self) -> Result<Vec<Statement>, String> {
+    fn parse_function_parameters(&mut self) -> Result<Vec<Parameter>, String> {
+        if self.current_token != Token::LeftPar {
+            return Err(format!(
+                "Unexpected token on function parameter parsing: {:?}",
+                &self.current_token
+            ));
+        }
         self.advance();
-        let mut statements: Vec<Statement> = vec![];
 
-        while self.current_token != Token::EOF {
-            let statement = self.parse_statement()?;
-            statements.push(statement.clone());
-            println!("CURRENT STATEMENT: {:?}", statement);
+        let mut parameters: Vec<Parameter> = vec![];
+
+        while self.current_token != Token::RightPar {
+            let parameter_type = self.parse_type()?;
             self.advance();
+            let parameter_name = self.parse_identifier()?;
+            parameters.push(Parameter::new(parameter_type, parameter_name));
+            self.advance();
+
+            if self.current_token == Token::Comma {
+                self.advance();
+            }
+        }
+        Ok(parameters)
+    }
+
+    // TODO: That function can two types of errors:
+    //       Either a function declaration doesn't specify the return type or
+    //       it is not well formed
+    //
+    //       I'll need to know when these errors happen.
+    fn parse_function_return_type(&mut self) -> Option<Type> {
+        // Function with no return type
+        if self.current_token == Token::LeftCurly {
+            return None;
+        }
+        self.advance();
+
+        if self.current_token == Token::Colon {
+            self.advance();
+
+            // Function is not well formed
+            if !is_data_type_keyword(&self.current_token) {
+                return None;
+            }
+
+            // TODO: Type::Int is a just place holder, but I need to figure out the selected type
+            return Some(Type::Int);
         }
 
-        Ok(statements)
+        // Function is not well formed
+        return None;
+    }
+
+    // TODO: Parse function body
+    fn parse_function_body(&mut self) -> Result<Vec<Ast>, String> {
+        let body: Vec<Ast> = vec![];
+        if self.current_token != Token::LeftCurly {
+            return Err(format!("Expected a left curly brace"));
+        }
+        self.advance();
+        Ok(body)
+    }
+
+    fn parse_function(&mut self) -> Result<FunctionDefinition, String> {
+        println!("PARSING FUNCTION: {:?}", self.current_token);
+        self.advance();
+
+        let function_name = self.parse_identifier()?;
+        self.advance();
+
+        let parameters = self.parse_function_parameters()?;
+        self.advance();
+
+        // Assuming that function is always well formed and "None" means "no return type"
+        let return_type = self.parse_function_return_type();
+
+        let body: Vec<Ast> = self.parse_function_body()?;
+
+        if self.current_token != Token::RightCurly {
+            return Err(format!(
+                "Unexpected token on function parsing: {:?}",
+                self.current_token
+            ));
+        }
+        self.advance();
+        Ok(FunctionDefinition::new(
+            function_name,
+            parameters,
+            body,
+            return_type,
+        ))
+    }
+
+    pub fn generate_ast(&mut self) -> Result<Vec<Ast>, String> {
+        self.advance();
+        let mut ast: Vec<Ast> = vec![];
+
+        while self.current_token != Token::EOF {
+            match &self.current_token {
+                _ if is_data_type_keyword(&self.current_token) => {
+                    let variable_declaration = self.parse_statement()?;
+                    ast.push(variable_declaration.clone());
+                    println!("CURRENT STATEMENT: {:?}", variable_declaration);
+                    self.advance();
+                }
+
+                Token::Keyword(keyword) => match keyword {
+                    KeywordId::Fn => {
+                        let function = self.parse_function()?;
+                        println!("FUNCTION: {:?}", function);
+                        ast.push(Ast::Function(function));
+                        self.advance();
+                    }
+
+                    _ => return Err(format!("Unexpected keyword: {:?}", keyword)),
+                },
+
+                _ => {
+                    return Err(format!(
+                        "Error: Invalid token on AST parsing: {:?}",
+                        self.current_token
+                    ))
+                }
+            }
+        }
+
+        Ok(ast)
+    }
+}
+
+// TODO: Refactor test (too verbose, maybe?)
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_variable_declaration() {
+        let input = "float variable_name = 8;\n".chars().collect::<Vec<char>>();
+        let mut lexer = Lexer::new(input);
+        let tokens = lexer.tokenize();
+        let mut parser = Parser::new(tokens);
+        let variable_ast = parser.generate_ast().unwrap();
+
+        let value = Expression::Int(8);
+        let variable = Variable::new(Type::Float, "variable_name".to_string(), value);
+        let expected_variable_ast = Ast::Assignment(variable);
+
+        assert_eq!(variable_ast[0], expected_variable_ast);
+    }
+
+    #[test]
+    fn test_ast_evaluation() {
+        let input = "float variable_name = 8 / 4 / 2;\n"
+            .chars()
+            .collect::<Vec<char>>();
+        let mut lexer = Lexer::new(input);
+        let tokens = lexer.tokenize();
+        let mut parser = Parser::new(tokens);
+        let variable_ast = parser.generate_ast().unwrap();
+
+        let var = &variable_ast[0];
+        if let Ast::Assignment(variable) = var {
+            let expression = variable.value.clone();
+            let value = ASTEvaluator::evaluate(expression).unwrap();
+            assert_eq!(value, 1.0);
+        } else {
+            panic!("This should be a variable declaration!");
+        }
     }
 }
