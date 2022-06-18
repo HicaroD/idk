@@ -369,10 +369,11 @@ impl Parser {
     //       I'll need to know when these errors happen.
     fn parse_function_return_type(&mut self) -> Option<Type> {
         // Function with no return type
+        self.advance();
+
         if self.current_token == Token::LeftCurly {
             return None;
         }
-        self.advance();
 
         if self.current_token == Token::Colon {
             self.advance();
@@ -381,9 +382,10 @@ impl Parser {
             if !is_data_type_keyword(&self.current_token) {
                 return None;
             }
-
-            // TODO: Type::Int is a just place holder, but I need to figure out the selected type
-            return Some(Type::Int);
+            // TODO: Avoid "unwrap"
+            let variable_type = self.parse_type().unwrap();
+            self.advance();
+            return Some(variable_type);
         }
 
         // Function is not well formed
@@ -408,7 +410,6 @@ impl Parser {
         self.advance();
 
         let parameters = self.parse_function_parameters()?;
-        self.advance();
 
         // Assuming that function is always well formed and "None" means "no return type"
         let return_type = self.parse_function_return_type();
@@ -468,6 +469,7 @@ impl Parser {
 }
 
 // TODO: Refactor test (too verbose, maybe?)
+// TODO: Test function declaration
 #[cfg(test)]
 mod tests {
     use super::*;
