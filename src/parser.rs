@@ -35,36 +35,6 @@ pub enum Associativity {
     Undefined,
 }
 
-struct Helpers {}
-
-impl Helpers {
-    fn is_operator(token: &Token) -> bool {
-        let operators: HashSet<Token> = HashSet::from([
-            Token::Plus,
-            Token::Minus,
-            Token::Mod,
-            Token::Divides,
-            Token::Times,
-        ]);
-        operators.get(token).is_some()
-    }
-
-    fn is_data_type_keyword(token: &Token) -> bool {
-        let data_types: HashSet<KeywordId> = HashSet::from([
-            KeywordId::Int,
-            KeywordId::Float,
-            KeywordId::Bool,
-            KeywordId::StringKeyword,
-        ]);
-
-        if let Token::Keyword(keyword) = token {
-            data_types.get(&keyword).is_some()
-        } else {
-            false
-        }
-    }
-}
-
 struct ASTEvaluator {}
 
 impl ASTEvaluator {
