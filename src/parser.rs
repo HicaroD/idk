@@ -392,7 +392,7 @@ impl Parser {
         return None;
     }
 
-    // TODO: Parse function body
+    // TODO: Parse function body (list of statements)
     fn parse_function_body(&mut self) -> Result<Vec<Ast>, String> {
         let body: Vec<Ast> = vec![];
         if self.current_token != Token::LeftCurly {
@@ -411,7 +411,8 @@ impl Parser {
 
         let parameters = self.parse_function_parameters()?;
 
-        // Assuming that function is always well formed and "None" means "no return type"
+        // Assuming that function is always well formed and "None" means that the function has
+        // no return type
         let return_type = self.parse_function_return_type();
 
         let body: Vec<Ast> = self.parse_function_body()?;
@@ -469,7 +470,6 @@ impl Parser {
 }
 
 // TODO: Refactor test (too verbose, maybe?)
-// TODO: Test function declaration
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -507,5 +507,18 @@ mod tests {
         } else {
             panic!("This should be a variable declaration!");
         }
+    }
+
+    #[test]
+    fn test_function_declaration_with_empty_body() {
+        let input = "fn name(): int {}\n".chars().collect::<Vec<char>>();
+        let mut lexer = Lexer::new(input);
+        let tokens = lexer.tokenize();
+        let mut parser = Parser::new(tokens);
+        let function_ast = &parser.generate_ast().unwrap()[0];
+
+        let function = FunctionDefinition::new("name".to_string(), vec![], vec![], Some(Type::Int));
+        let expected_result = Ast::Function(function);
+        assert_eq!(expected_result, *function_ast)
     }
 }
