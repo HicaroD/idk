@@ -37,7 +37,7 @@ fn main() -> io::Result<()> {
     for token in tokens.iter() {
         println!("{:?}", token);
     }
-    println!("--ENDING LEXER--");
+    println!("--ENDING LEXER--\n");
 
     println!("--STARTING PARSER--");
     let mut parser = Parser::new(tokens);

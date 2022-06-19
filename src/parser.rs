@@ -35,36 +35,6 @@ pub enum Associativity {
     Undefined,
 }
 
-struct Helpers {}
-
-impl Helpers {
-    fn is_operator(token: &Token) -> bool {
-        let operators: HashSet<Token> = HashSet::from([
-            Token::Plus,
-            Token::Minus,
-            Token::Mod,
-            Token::Divides,
-            Token::Times,
-        ]);
-        operators.get(token).is_some()
-    }
-
-    fn is_data_type_keyword(token: &Token) -> bool {
-        let data_types: HashSet<KeywordId> = HashSet::from([
-            KeywordId::Int,
-            KeywordId::Float,
-            KeywordId::Bool,
-            KeywordId::StringKeyword,
-        ]);
-
-        if let Token::Keyword(keyword) = token {
-            data_types.get(&keyword).is_some()
-        } else {
-            false
-        }
-    }
-}
-
 struct ASTEvaluator {}
 
 impl ASTEvaluator {
@@ -399,10 +369,11 @@ impl Parser {
     //       I'll need to know when these errors happen.
     fn parse_function_return_type(&mut self) -> Option<Type> {
         // Function with no return type
+        self.advance();
+
         if self.current_token == Token::LeftCurly {
             return None;
         }
-        self.advance();
 
         if self.current_token == Token::Colon {
             self.advance();
@@ -411,16 +382,17 @@ impl Parser {
             if !is_data_type_keyword(&self.current_token) {
                 return None;
             }
-
-            // TODO: Type::Int is a just place holder, but I need to figure out the selected type
-            return Some(Type::Int);
+            // TODO: Avoid "unwrap"
+            let variable_type = self.parse_type().unwrap();
+            self.advance();
+            return Some(variable_type);
         }
 
         // Function is not well formed
         return None;
     }
 
-    // TODO: Parse function body
+    // TODO: Parse function body (list of statements)
     fn parse_function_body(&mut self) -> Result<Vec<Ast>, String> {
         let body: Vec<Ast> = vec![];
         if self.current_token != Token::LeftCurly {
@@ -438,9 +410,9 @@ impl Parser {
         self.advance();
 
         let parameters = self.parse_function_parameters()?;
-        self.advance();
 
-        // Assuming that function is always well formed and "None" means "no return type"
+        // Assuming that function is always well formed and "None" means that the function has
+        // no return type
         let return_type = self.parse_function_return_type();
 
         let body: Vec<Ast> = self.parse_function_body()?;
@@ -535,5 +507,18 @@ mod tests {
         } else {
             panic!("This should be a variable declaration!");
         }
+    }
+
+    #[test]
+    fn test_function_declaration_with_empty_body() {
+        let input = "fn name(): int {}\n".chars().collect::<Vec<char>>();
+        let mut lexer = Lexer::new(input);
+        let tokens = lexer.tokenize();
+        let mut parser = Parser::new(tokens);
+        let function_ast = &parser.generate_ast().unwrap()[0];
+
+        let function = FunctionDefinition::new("name".to_string(), vec![], vec![], Some(Type::Int));
+        let expected_result = Ast::Function(function);
+        assert_eq!(expected_result, *function_ast)
     }
 }
