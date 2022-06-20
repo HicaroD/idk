@@ -16,17 +16,18 @@ pub enum Expression {
     StringLit(String),
     Char(char),
     Boolean(bool),
+    // FIXME: Performance issues with Box
     BinaryExpr(Box<Expression>, Token, Box<Expression>),
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Variable {
+pub struct Assignment {
     pub var_type: Type,
     pub name: String,
     pub value: Expression,
 }
 
-impl Variable {
+impl Assignment {
     pub fn new(var_type: Type, name: String, value: Expression) -> Self {
         Self {
             var_type,
@@ -53,18 +54,29 @@ impl Parameter {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct FunctionDefinition {
+pub struct Block {
+    itens: Vec<Ast>,
+}
+
+impl Block {
+    pub fn new(itens: Vec<Ast>) -> Self {
+        Self { itens }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Function {
     name: String,
     parameters: Vec<Parameter>,
-    body: Vec<Ast>,
+    body: Block,
     return_type: Option<Type>,
 }
 
-impl FunctionDefinition {
+impl Function {
     pub fn new(
         name: String,
         parameters: Vec<Parameter>,
-        body: Vec<Ast>,
+        body: Block,
         return_type: Option<Type>,
     ) -> Self {
         Self {
@@ -87,6 +99,6 @@ impl FunctionDefinition {
 //    }
 #[derive(Debug, Clone, PartialEq)]
 pub enum Ast {
-    Assignment(Variable),
-    Function(FunctionDefinition),
+    Assignment(Assignment),
+    Function(Function),
 }

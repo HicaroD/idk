@@ -123,13 +123,7 @@ impl Parser {
         println!("PARSING TYPE: {:?}", self.current_token);
 
         if let Token::Keyword(keyword) = self.current_token {
-            match keyword {
-                KeywordId::Int => Ok(Type::Int),
-                KeywordId::Float => Ok(Type::Float),
-                KeywordId::Bool => Ok(Type::Bool),
-                KeywordId::StringKeyword => Ok(Type::StringType),
-                _ => Err(format!("Error while parsing variable type")),
-            }
+            keyword.as_type()
         } else {
             Err(format!("Unexpected token on variable declaration"))
         }
@@ -322,7 +316,7 @@ impl Parser {
         }
     }
 
-    fn parse_assignment(&mut self) -> Result<Variable, String> {
+    fn parse_assignment(&mut self) -> Result<Assignment, String> {
         let var_type = self.parse_type()?;
         self.advance();
         let name = self.parse_identifier()?;
@@ -334,7 +328,7 @@ impl Parser {
 
         let evaluated_expression = ASTEvaluator::evaluate(expression.clone())?;
         println!("EVALUATED EXPRESSION: {}", evaluated_expression);
-        Ok(Variable::new(var_type, name, expression))
+        Ok(Assignment::new(var_type, name, expression))
     }
 
     fn parse_function_parameters(&mut self) -> Result<Vec<Parameter>, String> {
@@ -393,16 +387,29 @@ impl Parser {
     }
 
     // TODO: Parse function body (list of statements)
-    fn parse_function_body(&mut self) -> Result<Vec<Ast>, String> {
+    // TODO: Create symbol table
+    fn parse_function_body(&mut self) -> Result<Block, String> {
         let body: Vec<Ast> = vec![];
         if self.current_token != Token::LeftCurly {
             return Err(format!("Expected a left curly brace"));
         }
         self.advance();
-        Ok(body)
+        let mut body: Vec<Ast> = vec![];
+        while self.current_token != Token::RightCurly {
+            println!("CURRENT TOKEN: {:?}", self.current_token);
+            let statement = match &self.current_token {
+                data_type if is_data_type_keyword(&data_type) => {
+                    Ast::Assignment(self.parse_assignment()?)
+                }
+                _ => return Err(format!("Invalid token: {:?}", self.current_token)),
+            };
+            self.advance();
+            body.push(statement);
+        }
+        Ok(Block::new(body))
     }
 
-    fn parse_function(&mut self) -> Result<FunctionDefinition, String> {
+    fn parse_function(&mut self) -> Result<Function, String> {
         println!("PARSING FUNCTION: {:?}", self.current_token);
         self.advance();
 
@@ -415,7 +422,7 @@ impl Parser {
         // no return type
         let return_type = self.parse_function_return_type();
 
-        let body: Vec<Ast> = self.parse_function_body()?;
+        let body: Block = self.parse_function_body()?;
 
         if self.current_token != Token::RightCurly {
             return Err(format!(
@@ -424,12 +431,7 @@ impl Parser {
             ));
         }
         self.advance();
-        Ok(FunctionDefinition::new(
-            function_name,
-            parameters,
-            body,
-            return_type,
-        ))
+        Ok(Function::new(function_name, parameters, body, return_type))
     }
 
     pub fn generate_ast(&mut self) -> Result<Vec<Ast>, String> {
@@ -483,7 +485,7 @@ mod tests {
         let variable_ast = parser.generate_ast().unwrap();
 
         let value = Expression::Int(8);
-        let variable = Variable::new(Type::Float, "variable_name".to_string(), value);
+        let variable = Assignment::new(Type::Float, "variable_name".to_string(), value);
         let expected_variable_ast = Ast::Assignment(variable);
 
         assert_eq!(variable_ast[0], expected_variable_ast);
@@ -517,7 +519,12 @@ mod tests {
         let mut parser = Parser::new(tokens);
         let function_ast = &parser.generate_ast().unwrap()[0];
 
-        let function = FunctionDefinition::new("name".to_string(), vec![], vec![], Some(Type::Int));
+        let function = Function::new(
+            "name".to_string(),
+            vec![],
+            Block::new(vec![]),
+            Some(Type::Int),
+        );
         let expected_result = Ast::Function(function);
         assert_eq!(expected_result, *function_ast)
     }
