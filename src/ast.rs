@@ -54,11 +54,11 @@ impl Parameter {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Body {
+pub struct Block {
     itens: Vec<Ast>,
 }
 
-impl Body {
+impl Block {
     pub fn new(itens: Vec<Ast>) -> Self {
         Self { itens }
     }
@@ -68,7 +68,7 @@ impl Body {
 pub struct Function {
     name: String,
     parameters: Vec<Parameter>,
-    body: Body,
+    body: Block,
     return_type: Option<Type>,
 }
 
@@ -76,7 +76,7 @@ impl Function {
     pub fn new(
         name: String,
         parameters: Vec<Parameter>,
-        body: Body,
+        body: Block,
         return_type: Option<Type>,
     ) -> Self {
         Self {

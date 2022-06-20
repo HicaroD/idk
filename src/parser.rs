@@ -394,14 +394,25 @@ impl Parser {
 
     // TODO: Parse function body (list of statements)
     // TODO: Create symbol table
-    fn parse_function_body(&mut self) -> Result<Body, String> {
+    fn parse_function_body(&mut self) -> Result<Block, String> {
         let body: Vec<Ast> = vec![];
         if self.current_token != Token::LeftCurly {
             return Err(format!("Expected a left curly brace"));
         }
         self.advance();
-        let body = Body::new(body);
-        Ok(body)
+        let mut body: Vec<Ast> = vec![];
+        while self.current_token != Token::RightCurly {
+            println!("CURRENT TOKEN: {:?}", self.current_token);
+            let statement = match &self.current_token {
+                data_type if is_data_type_keyword(&data_type) => {
+                    Ast::Assignment(self.parse_assignment()?)
+                }
+                _ => return Err(format!("Invalid token: {:?}", self.current_token)),
+            };
+            self.advance();
+            body.push(statement);
+        }
+        Ok(Block::new(body))
     }
 
     fn parse_function(&mut self) -> Result<Function, String> {
@@ -417,7 +428,7 @@ impl Parser {
         // no return type
         let return_type = self.parse_function_return_type();
 
-        let body: Body = self.parse_function_body()?;
+        let body: Block = self.parse_function_body()?;
 
         if self.current_token != Token::RightCurly {
             return Err(format!(
@@ -517,7 +528,7 @@ mod tests {
         let function = Function::new(
             "name".to_string(),
             vec![],
-            Body::new(vec![]),
+            Block::new(vec![]),
             Some(Type::Int),
         );
         let expected_result = Ast::Function(function);
