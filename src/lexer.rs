@@ -1,3 +1,4 @@
+use crate::ast::Type;
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq, Hash, Eq)]
@@ -63,6 +64,18 @@ pub enum KeywordId {
     Float,
     Bool,
     StringKeyword,
+}
+
+impl KeywordId {
+    pub fn as_type(&self) -> Result<Type, String> {
+        match &self {
+            KeywordId::Int => Ok(Type::Int),
+            KeywordId::Float => Ok(Type::Float),
+            KeywordId::Bool => Ok(Type::Bool),
+            KeywordId::StringKeyword => Ok(Type::StringType),
+            keyword => Err(format!("Can't parse type: {:?}", keyword)),
+        }
+    }
 }
 
 pub struct Lexer {

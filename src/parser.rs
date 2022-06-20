@@ -123,13 +123,7 @@ impl Parser {
         println!("PARSING TYPE: {:?}", self.current_token);
 
         if let Token::Keyword(keyword) = self.current_token {
-            match keyword {
-                KeywordId::Int => Ok(Type::Int),
-                KeywordId::Float => Ok(Type::Float),
-                KeywordId::Bool => Ok(Type::Bool),
-                KeywordId::StringKeyword => Ok(Type::StringType),
-                _ => Err(format!("Error while parsing variable type")),
-            }
+            keyword.as_type()
         } else {
             Err(format!("Unexpected token on variable declaration"))
         }
