@@ -1,0 +1,4 @@
+fn another_function(): float {
+    int a = 12;
+    float b = 13;
+}
