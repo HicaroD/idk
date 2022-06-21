@@ -389,14 +389,14 @@ impl Parser {
     // TODO: Parse function body (list of statements)
     // TODO: Create symbol table
     fn parse_function_body(&mut self) -> Result<Block, String> {
-        let body: Vec<Ast> = vec![];
         if self.current_token != Token::LeftCurly {
             return Err(format!("Expected a left curly brace"));
         }
         self.advance();
+
         let mut body: Vec<Ast> = vec![];
+
         while self.current_token != Token::RightCurly {
-            println!("CURRENT TOKEN: {:?}", self.current_token);
             let statement = match &self.current_token {
                 data_type if is_data_type_keyword(&data_type) => {
                     Ast::Assignment(self.parse_assignment()?)
