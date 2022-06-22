@@ -69,23 +69,12 @@ impl ASTEvaluator {
     }
 }
 
-struct SymbolTable {
-    items: HashMap<String, Ast>,
-}
-
-impl SymbolTable {
-    fn new() -> Self {
-        Self {
-            items: HashMap::new(),
-        }
-    }
-}
-
 pub struct Parser {
     tokens: Vec<Token>,
     current_token: Token,
     position: usize,
-    symbol_table: SymbolTable,
+    // TODO: Build custom symbol table with helper methods
+    symbol_table: HashMap<String, Ast>,
 }
 
 impl Parser {
@@ -94,7 +83,7 @@ impl Parser {
             tokens,
             current_token: Token::EOF,
             position: 0,
-            symbol_table: SymbolTable::new(),
+            symbol_table: HashMap::new(),
         }
     }
 
@@ -114,6 +103,19 @@ impl Parser {
                     println!("ADD NUMBER TO STACK {:?}", value);
                     expressions.push(self.parse_number(value)?);
                 }
+
+                Token::Identifier(ident) => match self.symbol_table.get(ident) {
+                    Some(ast) => {
+                        match ast {
+                            Ast::Assignment(assignment) => {
+                                expressions.push(assignment.value.clone())
+                            }
+                            // TODO: Implement function call
+                            _ => return Err(format!("Unexpected identifier: {:?}", ident)),
+                        }
+                    }
+                    None => return Err(format!("Undefined variable or function: {:?}", ident)),
+                },
 
                 operator if is_operator(&operator) => {
                     if expressions.len() >= 2 {
@@ -219,6 +221,11 @@ impl Parser {
             match &self.current_token {
                 Token::Number(_) => {
                     println!("ADDING NUMBER TO OPERANDS: {:?}", self.current_token);
+                    operands.push(self.current_token.clone());
+                }
+
+                Token::Identifier(_) => {
+                    println!("FOUND AN IDENTIFIER");
                     operands.push(self.current_token.clone());
                 }
 
@@ -345,7 +352,11 @@ impl Parser {
 
         let evaluated_expression = ASTEvaluator::evaluate(expression.clone())?;
         println!("EVALUATED EXPRESSION: {}", evaluated_expression);
-        Ok(Assignment::new(var_type, name, expression))
+
+        let assignment = Assignment::new(var_type, name.clone(), expression);
+        self.symbol_table
+            .insert(name, Ast::Assignment(assignment.clone()));
+        Ok(assignment)
     }
 
     fn parse_function_parameters(&mut self) -> Result<Vec<Parameter>, String> {
