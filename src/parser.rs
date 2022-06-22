@@ -1,6 +1,9 @@
 use crate::{ast::*, lexer::*};
 
-use std::{collections::HashSet, str::FromStr};
+use std::{
+    collections::{HashMap, HashSet},
+    str::FromStr,
+};
 
 fn is_operator(token: &Token) -> bool {
     let operators: HashSet<Token> = HashSet::from([
@@ -66,10 +69,23 @@ impl ASTEvaluator {
     }
 }
 
+struct SymbolTable {
+    items: HashMap<String, Ast>,
+}
+
+impl SymbolTable {
+    fn new() -> Self {
+        Self {
+            items: HashMap::new(),
+        }
+    }
+}
+
 pub struct Parser {
     tokens: Vec<Token>,
     current_token: Token,
     position: usize,
+    symbol_table: SymbolTable,
 }
 
 impl Parser {
@@ -78,6 +94,7 @@ impl Parser {
             tokens,
             current_token: Token::EOF,
             position: 0,
+            symbol_table: SymbolTable::new(),
         }
     }
 
