@@ -384,11 +384,11 @@ impl Parser {
         Ok(parameters)
     }
 
-    // TODO: That function can two types of errors:
+    // TODO: That function can have two types of errors (return None):
     //       Either a function declaration doesn't specify the return type or
     //       it is not well formed
     //
-    //       I'll need to know when these errors happen.
+    //       I'll need to know when these different errors happen.
     fn parse_function_return_type(&mut self) -> Option<Type> {
         // Function with no return type
         self.advance();
@@ -414,9 +414,7 @@ impl Parser {
         return None;
     }
 
-    // TODO: Parse function body (list of statements)
-    // TODO: Create symbol table
-    fn parse_function_body(&mut self) -> Result<Block, String> {
+    fn parse_block(&mut self) -> Result<Block, String> {
         if self.current_token != Token::LeftCurly {
             return Err(format!("Expected a left curly brace"));
         }
@@ -450,7 +448,7 @@ impl Parser {
         // no return type
         let return_type = self.parse_function_return_type();
 
-        let body: Block = self.parse_function_body()?;
+        let body: Block = self.parse_block()?;
 
         if self.current_token != Token::RightCurly {
             return Err(format!(
@@ -500,6 +498,7 @@ impl Parser {
 }
 
 // TODO: Refactor test (too verbose, maybe?)
+//       Test symbol table and function body (block)
 #[cfg(test)]
 mod tests {
     use super::*;
