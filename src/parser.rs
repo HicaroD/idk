@@ -73,7 +73,6 @@ pub struct Parser {
     tokens: Vec<Token>,
     current_token: Token,
     position: usize,
-    // TODO: Build custom symbol table with helper methods
     symbol_table: HashMap<String, Ast>,
 }
 
@@ -105,15 +104,10 @@ impl Parser {
                 }
 
                 Token::Identifier(ident) => match self.symbol_table.get(ident) {
-                    Some(ast) => {
-                        match ast {
-                            Ast::Assignment(assignment) => {
-                                expressions.push(assignment.value.clone())
-                            }
-                            // TODO: Implement function call
-                            _ => return Err(format!("Unexpected identifier: {:?}", ident)),
-                        }
-                    }
+                    Some(ast) => match ast {
+                        Ast::Assignment(assignment) => expressions.push(assignment.value.clone()),
+                        _ => return Err(format!("Unexpected identifier: {:?}", ident)),
+                    },
                     None => return Err(format!("Undefined variable or function: {:?}", ident)),
                 },
 
@@ -457,7 +451,11 @@ impl Parser {
             ));
         }
         self.advance();
-        Ok(Function::new(function_name, parameters, body, return_type))
+
+        let function = Function::new(function_name.clone(), parameters, body, return_type);
+        self.symbol_table
+            .insert(function_name, Ast::Function(function.clone()));
+        Ok(function)
     }
 
     pub fn generate_ast(&mut self) -> Result<Vec<Ast>, String> {
