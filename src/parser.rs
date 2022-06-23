@@ -1,6 +1,9 @@
 use crate::{ast::*, lexer::*};
 
-use std::{collections::HashSet, str::FromStr};
+use std::{
+    collections::{HashMap, HashSet},
+    str::FromStr,
+};
 
 fn is_operator(token: &Token) -> bool {
     let operators: HashSet<Token> = HashSet::from([
@@ -70,6 +73,7 @@ pub struct Parser {
     tokens: Vec<Token>,
     current_token: Token,
     position: usize,
+    symbol_table: HashMap<String, Ast>,
 }
 
 impl Parser {
@@ -78,6 +82,7 @@ impl Parser {
             tokens,
             current_token: Token::EOF,
             position: 0,
+            symbol_table: HashMap::new(),
         }
     }
 
@@ -97,6 +102,14 @@ impl Parser {
                     println!("ADD NUMBER TO STACK {:?}", value);
                     expressions.push(self.parse_number(value)?);
                 }
+
+                Token::Identifier(ident) => match self.symbol_table.get(ident) {
+                    Some(ast) => match ast {
+                        Ast::Assignment(assignment) => expressions.push(assignment.value.clone()),
+                        _ => return Err(format!("Unexpected identifier: {:?}", ident)),
+                    },
+                    None => return Err(format!("Undefined variable or function: {:?}", ident)),
+                },
 
                 operator if is_operator(&operator) => {
                     if expressions.len() >= 2 {
@@ -123,7 +136,7 @@ impl Parser {
         println!("PARSING TYPE: {:?}", self.current_token);
 
         if let Token::Keyword(keyword) = self.current_token {
-            keyword.as_type()
+            keyword.is_type()
         } else {
             Err(format!("Unexpected token on variable declaration"))
         }
@@ -202,6 +215,11 @@ impl Parser {
             match &self.current_token {
                 Token::Number(_) => {
                     println!("ADDING NUMBER TO OPERANDS: {:?}", self.current_token);
+                    operands.push(self.current_token.clone());
+                }
+
+                Token::Identifier(_) => {
+                    println!("FOUND AN IDENTIFIER");
                     operands.push(self.current_token.clone());
                 }
 
@@ -328,7 +346,11 @@ impl Parser {
 
         let evaluated_expression = ASTEvaluator::evaluate(expression.clone())?;
         println!("EVALUATED EXPRESSION: {}", evaluated_expression);
-        Ok(Assignment::new(var_type, name, expression))
+
+        let assignment = Assignment::new(var_type, name.clone(), expression);
+        self.symbol_table
+            .insert(name, Ast::Assignment(assignment.clone()));
+        Ok(assignment)
     }
 
     fn parse_function_parameters(&mut self) -> Result<Vec<Parameter>, String> {
@@ -356,11 +378,11 @@ impl Parser {
         Ok(parameters)
     }
 
-    // TODO: That function can two types of errors:
+    // TODO: That function can have two types of errors (return None):
     //       Either a function declaration doesn't specify the return type or
     //       it is not well formed
     //
-    //       I'll need to know when these errors happen.
+    //       I'll need to know when these different errors happen.
     fn parse_function_return_type(&mut self) -> Option<Type> {
         // Function with no return type
         self.advance();
@@ -386,17 +408,15 @@ impl Parser {
         return None;
     }
 
-    // TODO: Parse function body (list of statements)
-    // TODO: Create symbol table
-    fn parse_function_body(&mut self) -> Result<Block, String> {
-        let body: Vec<Ast> = vec![];
+    fn parse_block(&mut self) -> Result<Block, String> {
         if self.current_token != Token::LeftCurly {
             return Err(format!("Expected a left curly brace"));
         }
         self.advance();
+
         let mut body: Vec<Ast> = vec![];
+
         while self.current_token != Token::RightCurly {
-            println!("CURRENT TOKEN: {:?}", self.current_token);
             let statement = match &self.current_token {
                 data_type if is_data_type_keyword(&data_type) => {
                     Ast::Assignment(self.parse_assignment()?)
@@ -422,7 +442,7 @@ impl Parser {
         // no return type
         let return_type = self.parse_function_return_type();
 
-        let body: Block = self.parse_function_body()?;
+        let body: Block = self.parse_block()?;
 
         if self.current_token != Token::RightCurly {
             return Err(format!(
@@ -431,7 +451,11 @@ impl Parser {
             ));
         }
         self.advance();
-        Ok(Function::new(function_name, parameters, body, return_type))
+
+        let function = Function::new(function_name.clone(), parameters, body, return_type);
+        self.symbol_table
+            .insert(function_name, Ast::Function(function.clone()));
+        Ok(function)
     }
 
     pub fn generate_ast(&mut self) -> Result<Vec<Ast>, String> {
@@ -472,6 +496,7 @@ impl Parser {
 }
 
 // TODO: Refactor test (too verbose, maybe?)
+//       Test symbol table and function body (block)
 #[cfg(test)]
 mod tests {
     use super::*;

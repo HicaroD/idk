@@ -67,7 +67,7 @@ pub enum KeywordId {
 }
 
 impl KeywordId {
-    pub fn as_type(&self) -> Result<Type, String> {
+    pub fn is_type(&self) -> Result<Type, String> {
         match &self {
             KeywordId::Int => Ok(Type::Int),
             KeywordId::Float => Ok(Type::Float),
