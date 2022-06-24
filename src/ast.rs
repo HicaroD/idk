@@ -64,6 +64,7 @@ impl Block {
     }
 }
 
+// TODO: Implement return instruction on function body
 #[derive(Debug, Clone, PartialEq)]
 pub struct Function {
     name: String,
