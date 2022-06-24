@@ -211,7 +211,7 @@ impl Lexer {
                     return self.consume_and_advance(Token::EqualTo);
                 }
 
-               Token::EqualSign
+                Token::EqualSign
             }
 
             '>' => {

@@ -555,4 +555,28 @@ mod tests {
         let expected_result = Ast::Function(function);
         assert_eq!(expected_result, *function_ast)
     }
+
+    #[test]
+    fn test_function_declaration() {
+        let input = "fn name(): int {int a = 12;}\n"
+            .chars()
+            .collect::<Vec<char>>();
+        let mut lexer = Lexer::new(input);
+        let tokens = lexer.tokenize();
+        let mut parser = Parser::new(tokens);
+        let function_ast = &parser.generate_ast().unwrap()[0];
+
+        let block = vec![Ast::Assignment(Assignment::new(
+            Type::Int,
+            "a".to_string(),
+            Expression::Int(12),
+        ))];
+        let expected_function = Ast::Function(Function::new(
+            "name".to_string(),
+            vec![],
+            Block::new(block),
+            Some(Type::Int),
+        ));
+        assert_eq!(expected_function, *function_ast)
+    }
 }
