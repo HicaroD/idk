@@ -82,7 +82,7 @@ impl Parser {
     pub fn new(tokens: Vec<Token>) -> Self {
         Self {
             tokens,
-            current_token: Token::EOF,
+            current_token: Token::Eof,
             position: 0,
             symbol_table: HashMap::new(),
         }
@@ -113,24 +113,24 @@ impl Parser {
                     None => return Err(format!("Undefined variable or function: {:?}", ident)),
                 },
 
-                operator if is_operator(&operator) => {
+                operator if is_operator(operator) => {
                     if expressions.len() >= 2 {
                         let rhs = Box::new(expressions.pop().unwrap());
                         let lhs = Box::new(expressions.pop().unwrap());
                         expressions.push(Expression::BinaryExpr(lhs, operator.clone(), rhs));
                     } else {
-                        return Err(format!("Error: Invalid expression"));
+                        return Err("Error: Invalid expression".to_string());
                     }
                 }
 
-                _ => return Err(format!("Invalid token on RPN expression")),
+                _ => return Err("Invalid token on RPN expression".to_string()),
             }
         }
 
         if expressions.len() == 1 {
             Ok(expressions[0].clone())
         } else {
-            Err(format!("Error: Invalid RPN expression"))
+            Err("Error: Invalid RPN expression".to_string())
         }
     }
 
@@ -140,7 +140,7 @@ impl Parser {
         if let Token::Keyword(keyword) = self.current_token {
             keyword.is_type()
         } else {
-            Err(format!("Unexpected token on variable declaration"))
+            Err("Unexpected token on variable declaration".to_string())
         }
     }
 
@@ -149,7 +149,7 @@ impl Parser {
         if let Token::Identifier(ident) = &self.current_token {
             Ok(ident.to_string())
         } else {
-            Err(format!("Error while parsing identifier"))
+            Err("Error while parsing identifier".to_string())
         }
     }
 
@@ -158,17 +158,17 @@ impl Parser {
         if is_data_type_keyword(&self.current_token) {
             return Ok(Ast::Assignment(self.parse_assignment()?));
         }
-        return Err(format!("Invalid statement"));
+        Err("Invalid statement".to_string())
     }
 
     fn parse_number(&self, number: &str) -> Result<Expression, String> {
         if number.contains('.') {
-            match f64::from_str(&number) {
+            match f64::from_str(number) {
                 Ok(value) => Ok(Expression::Float(value)),
                 Err(err) => Err(format!("Couldn't parse float value: {:?}", err)),
             }
         } else {
-            match i32::from_str(&number) {
+            match i32::from_str(number) {
                 Ok(value) => Ok(Expression::Int(value)),
                 Err(err) => Err(format!("Couldn't parse integer value: {:?}", err)),
             }
@@ -249,7 +249,7 @@ impl Parser {
                     }
 
                     if operators.is_empty() && !found_left_parenthesis {
-                        return Err(format!("Error: Left parenthesis not found"));
+                        return Err("Error: Left parenthesis not found".to_string());
                     } else {
                         // DISCARD LEFT PARENTHESIS AT THE TOP
                         println!("FOUND LEFT PARENTHESIS -> DISCARDING NOW");
@@ -258,7 +258,7 @@ impl Parser {
                 }
 
                 // TODO: Refactor excessive clone
-                op if is_operator(&op) => {
+                op if is_operator(op) => {
                     println!("FOUND OPERATOR: {:?}", op);
                     while !operators.is_empty() {
                         let top = operators.last().unwrap().clone();
@@ -292,7 +292,7 @@ impl Parser {
         while !operators.is_empty() {
             let top = operators.last().unwrap().clone();
             if top == Token::LeftPar {
-                return Err(format!("Error: Mismatched parenthesis"));
+                return Err("Error: Mismatched parenthesis".to_string());
             }
             operands.push(operators.pop().unwrap());
         }
@@ -407,12 +407,12 @@ impl Parser {
         }
 
         // Function is not well formed
-        return None;
+        None
     }
 
     fn parse_block(&mut self) -> Result<Block, String> {
         if self.current_token != Token::LeftCurly {
-            return Err(format!("Expected a left curly brace"));
+            return Err("Expected a left curly brace".to_string());
         }
         self.advance();
 
@@ -420,7 +420,7 @@ impl Parser {
 
         while self.current_token != Token::RightCurly {
             let statement = match &self.current_token {
-                data_type if is_data_type_keyword(&data_type) => {
+                data_type if is_data_type_keyword(data_type) => {
                     Ast::Assignment(self.parse_assignment()?)
                 }
                 _ => return Err(format!("Invalid token: {:?}", self.current_token)),
@@ -464,7 +464,7 @@ impl Parser {
         self.advance();
         let mut ast: Vec<Ast> = vec![];
 
-        while self.current_token != Token::EOF {
+        while self.current_token != Token::Eof {
             match &self.current_token {
                 _ if is_data_type_keyword(&self.current_token) => {
                     let variable_declaration = self.parse_statement()?;

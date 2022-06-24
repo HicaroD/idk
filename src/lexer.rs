@@ -50,7 +50,7 @@ pub enum Token {
     BitwiseAnd, // &
     BitwiseOr,  // |
 
-    EOF,
+    Eof,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Hash, Eq)]
@@ -211,7 +211,7 @@ impl Lexer {
                     return self.consume_and_advance(Token::EqualTo);
                 }
 
-                return Token::EqualSign;
+               Token::EqualSign
             }
 
             '>' => {
@@ -221,7 +221,7 @@ impl Lexer {
                     return self.consume_and_advance(Token::GreaterThanOrEqual);
                 }
 
-                return Token::GreaterThan;
+                Token::GreaterThan
             }
 
             '<' => {
@@ -231,7 +231,7 @@ impl Lexer {
                     return self.consume_and_advance(Token::LessThanOrEqual);
                 }
 
-                return Token::LessThan;
+                Token::LessThan
             }
 
             '+' => {
@@ -241,7 +241,7 @@ impl Lexer {
                     return self.consume_and_advance(Token::Increment);
                 }
 
-                return Token::Plus;
+                Token::Plus
             }
 
             '-' => {
@@ -250,7 +250,7 @@ impl Lexer {
                 if self.current_char == '-' {
                     return self.consume_and_advance(Token::Decrement);
                 }
-                return Token::Minus;
+                Token::Minus
             }
 
             '!' => {
@@ -259,7 +259,7 @@ impl Lexer {
                 if self.current_char == '=' {
                     return self.consume_and_advance(Token::NotEqual);
                 }
-                return Token::Not;
+                Token::Not
             }
 
             '|' => {
@@ -268,7 +268,7 @@ impl Lexer {
                 if self.current_char == '|' {
                     return self.consume_and_advance(Token::LogicOr);
                 }
-                return Token::BitwiseOr;
+                Token::BitwiseOr
             }
 
             '&' => {
@@ -277,7 +277,7 @@ impl Lexer {
                 if self.current_char == '&' {
                     return self.consume_and_advance(Token::LogicAnd);
                 }
-                return Token::BitwiseAnd;
+                Token::BitwiseAnd
             }
 
             '/' => self.consume_and_advance(Token::Divides),
@@ -288,7 +288,7 @@ impl Lexer {
                 if self.current_char == '*' {
                     return self.consume_and_advance(Token::Power);
                 }
-                return Token::Times;
+                Token::Times
             }
 
             '%' => self.consume_and_advance(Token::Mod),
@@ -318,8 +318,8 @@ impl Lexer {
                 break;
             }
         }
-        tokens.push(Token::EOF);
-        return tokens;
+        tokens.push(Token::Eof);
+        tokens
     }
 }
 
@@ -339,7 +339,7 @@ mod tests {
             Token::EqualSign,
             Token::Number("12".to_string()),
             Token::Semicolon,
-            Token::EOF,
+            Token::Eof,
         ];
 
         assert_eq!(tokens, expected_result);
@@ -372,7 +372,7 @@ mod tests {
             Token::LogicOr,
             Token::BitwiseAnd,
             Token::BitwiseOr,
-            Token::EOF,
+            Token::Eof,
         ];
 
         assert_eq!(tokens, expected_result);
@@ -395,7 +395,7 @@ mod tests {
             Token::Comma,
             Token::Semicolon,
             Token::Colon,
-            Token::EOF,
+            Token::Eof,
         ];
 
         assert_eq!(tokens, expected_result);
@@ -408,7 +408,7 @@ mod tests {
         let tokens = lexer.tokenize();
 
         let expected_result: Vec<Token> =
-            vec![Token::StringValue("my string here".to_string()), Token::EOF];
+            vec![Token::StringValue("my string here".to_string()), Token::Eof];
 
         assert_eq!(tokens, expected_result);
     }
