@@ -73,6 +73,8 @@ pub struct Parser {
     tokens: Vec<Token>,
     current_token: Token,
     position: usize,
+    // TODO: implement scope system (each variable has its own scope)
+    // Each block has its own symbol table
     symbol_table: HashMap<String, Ast>,
 }
 
