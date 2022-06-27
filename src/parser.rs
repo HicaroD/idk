@@ -175,15 +175,15 @@ impl Parser {
         }
     }
 
-    fn get_associativity(&self, operator: Token) -> Associativity {
-        match operator {
+    fn get_associativity(&self, operator: &Token) -> Associativity {
+        match *operator {
             Token::Plus | Token::Minus | Token::Times | Token::Divides => Associativity::Left,
             _ => Associativity::Undefined,
         }
     }
 
-    fn get_precedence(&self, token: Token) -> i8 {
-        match token {
+    fn get_precedence(&self, token: &Token) -> i8 {
+        match *token {
             Token::Plus => 1,
             Token::Minus => 1,
             Token::Times => 2,
@@ -192,11 +192,11 @@ impl Parser {
         }
     }
 
-    fn has_higher_precedence(&self, first_token: Token, second_token: Token) -> bool {
+    fn has_higher_precedence(&self, first_token: &Token, second_token: &Token) -> bool {
         self.get_precedence(first_token) > self.get_precedence(second_token)
     }
 
-    fn has_same_precedence(&self, first_token: Token, second_token: Token) -> bool {
+    fn has_same_precedence(&self, first_token: &Token, second_token: &Token) -> bool {
         self.get_precedence(first_token) == self.get_precedence(second_token)
     }
 
@@ -267,9 +267,9 @@ impl Parser {
                         if top == Token::LeftPar {
                             break;
                         }
-                        if self.has_higher_precedence(top.clone(), op.clone())
-                            || self.has_same_precedence(top.clone(), op.clone())
-                                && self.get_associativity(op.clone()) == Associativity::Left
+                        if self.has_higher_precedence(&top, &op)
+                            || self.has_same_precedence(&top, &op)
+                                && self.get_associativity(&op) == Associativity::Left
                         {
                             println!("IS {:?} LOWER THAN {:?}", op, top);
                             operands.push(operators.pop().unwrap());
@@ -554,5 +554,29 @@ mod tests {
         );
         let expected_result = Ast::Function(function);
         assert_eq!(expected_result, *function_ast)
+    }
+
+    #[test]
+    fn test_function_declaration() {
+        let input = "fn name(): int {int a = 12;}\n"
+            .chars()
+            .collect::<Vec<char>>();
+        let mut lexer = Lexer::new(input);
+        let tokens = lexer.tokenize();
+        let mut parser = Parser::new(tokens);
+        let function_ast = &parser.generate_ast().unwrap()[0];
+
+        let block = vec![Ast::Assignment(Assignment::new(
+            Type::Int,
+            "a".to_string(),
+            Expression::Int(12),
+        ))];
+        let expected_function = Ast::Function(Function::new(
+            "name".to_string(),
+            vec![],
+            Block::new(block),
+            Some(Type::Int),
+        ));
+        assert_eq!(expected_function, *function_ast)
     }
 }
