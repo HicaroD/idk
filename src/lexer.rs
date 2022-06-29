@@ -3,11 +3,19 @@ use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq, Hash, Eq)]
 pub enum Token {
-    Keyword(KeywordId),
-
     Number(String),
     StringValue(String),
     Identifier(String),
+
+    KeywordFn,     // fn
+    KeywordIf,     // if
+    KeywordElif,   // elif
+    KeywordElse,   // else
+    KeywordReturn, // return
+    KeywordInt,    // int
+    KeywordFloat,  // float
+    KeywordBool,   // bool
+    KeywordString, // string
 
     // Special characters
     Colon,
@@ -53,27 +61,14 @@ pub enum Token {
     Eof,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Hash, Eq)]
-pub enum KeywordId {
-    Fn, // Function declaration
-    If,
-    Elif, // Else if
-    Else,
-    Return,
-    Int,
-    Float,
-    Bool,
-    StringKeyword,
-}
-
-impl KeywordId {
-    pub fn is_type(&self) -> Result<Type, String> {
-        match &self {
-            KeywordId::Int => Ok(Type::Int),
-            KeywordId::Float => Ok(Type::Float),
-            KeywordId::Bool => Ok(Type::Bool),
-            KeywordId::StringKeyword => Ok(Type::StringType),
-            keyword => Err(format!("Can't parse type: {:?}", keyword)),
+impl Token {
+    pub fn as_type(&self) -> Result<Type, String> {
+        match self {
+            Token::KeywordInt => Ok(Type::Int),
+            Token::KeywordFloat => Ok(Type::Float),
+            Token::KeywordBool => Ok(Type::Bool),
+            Token::KeywordString => Ok(Type::StringType),
+            token => Err(format!("Can't parse type: {:?}", token)),
         }
     }
 }
@@ -120,20 +115,20 @@ impl Lexer {
     }
 
     fn classify_identifier(&self, identifier: &str) -> Token {
-        let keywords: HashMap<&str, KeywordId> = HashMap::from([
-            ("fn", KeywordId::Fn),
-            ("if", KeywordId::If),
-            ("elif", KeywordId::Elif),
-            ("else", KeywordId::Else),
-            ("return", KeywordId::Return),
-            ("bool", KeywordId::Bool),
-            ("int", KeywordId::Int),
-            ("float", KeywordId::Float),
-            ("string", KeywordId::StringKeyword),
+        let keywords: HashMap<&str, Token> = HashMap::from([
+            ("fn", Token::KeywordFn),
+            ("if", Token::KeywordIf),
+            ("elif", Token::KeywordElif),
+            ("else", Token::KeywordElse),
+            ("return", Token::KeywordReturn),
+            ("bool", Token::KeywordBool),
+            ("int", Token::KeywordInt),
+            ("float", Token::KeywordFloat),
+            ("string", Token::KeywordString),
         ]);
 
         match keywords.get(identifier) {
-            Some(keyword_type) => Token::Keyword(*keyword_type),
+            Some(keyword_type) => keyword_type.clone(),
             None => Token::Identifier(identifier.to_string()),
         }
     }
@@ -334,7 +329,7 @@ mod tests {
         let tokens = lexer.tokenize();
 
         let expected_result: Vec<Token> = vec![
-            Token::Keyword(KeywordId::Int),
+            Token::KeywordInt,
             Token::Identifier("variable_name".to_string()),
             Token::EqualSign,
             Token::Number("12".to_string()),
