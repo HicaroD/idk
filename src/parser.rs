@@ -17,18 +17,14 @@ fn is_operator(token: &Token) -> bool {
 }
 
 fn is_data_type_keyword(token: &Token) -> bool {
-    let data_types: HashSet<KeywordId> = HashSet::from([
-        KeywordId::Int,
-        KeywordId::Float,
-        KeywordId::Bool,
-        KeywordId::StringKeyword,
+    let data_types: HashSet<Token> = HashSet::from([
+        Token::KeywordInt,
+        Token::KeywordFloat,
+        Token::KeywordBool,
+        Token::KeywordString,
     ]);
 
-    if let Token::Keyword(keyword) = token {
-        data_types.get(keyword).is_some()
-    } else {
-        false
-    }
+    data_types.get(token).is_some()
 }
 
 #[derive(PartialEq)]
@@ -136,12 +132,7 @@ impl Parser {
 
     fn parse_type(&self) -> Result<Type, String> {
         println!("PARSING TYPE: {:?}", self.current_token);
-
-        if let Token::Keyword(keyword) = self.current_token {
-            keyword.is_type()
-        } else {
-            Err("Unexpected token on variable declaration".to_string())
-        }
+        self.current_token.as_type()
     }
 
     fn parse_identifier(&self) -> Result<String, String> {
@@ -473,16 +464,12 @@ impl Parser {
                     self.advance();
                 }
 
-                Token::Keyword(keyword) => match keyword {
-                    KeywordId::Fn => {
-                        let function = self.parse_function()?;
-                        println!("FUNCTION: {:?}", function);
-                        ast.push(Ast::Function(function));
-                        self.advance();
-                    }
-
-                    _ => return Err(format!("Unexpected keyword: {:?}", keyword)),
-                },
+                Token::KeywordFn => {
+                    let function = self.parse_function()?;
+                    println!("FUNCTION: {:?}", function);
+                    ast.push(Ast::Function(function));
+                    self.advance();
+                }
 
                 _ => {
                     return Err(format!(
