@@ -1,5 +1,5 @@
 use crate::ast::Type;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 #[derive(Debug, Clone, PartialEq, Hash, Eq)]
 pub enum Token {
@@ -62,6 +62,28 @@ pub enum Token {
 }
 
 impl Token {
+    pub fn is_operator(&self) -> bool {
+        let operators: HashSet<Token> = HashSet::from([
+            Token::Plus,
+            Token::Minus,
+            Token::Mod,
+            Token::Divides,
+            Token::Times,
+        ]);
+        operators.get(self).is_some()
+    }
+
+    pub fn is_data_type_keyword(&self) -> bool {
+        let data_types: HashSet<Token> = HashSet::from([
+            Token::KeywordInt,
+            Token::KeywordFloat,
+            Token::KeywordBool,
+            Token::KeywordString,
+        ]);
+
+        data_types.get(self).is_some()
+    }
+
     pub fn as_type(&self) -> Result<Type, String> {
         match self {
             Token::KeywordInt => Ok(Type::Int),

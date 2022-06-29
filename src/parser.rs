@@ -1,31 +1,6 @@
 use crate::{ast::*, lexer::*};
 
-use std::{
-    collections::{HashMap, HashSet},
-    str::FromStr,
-};
-
-fn is_operator(token: &Token) -> bool {
-    let operators: HashSet<Token> = HashSet::from([
-        Token::Plus,
-        Token::Minus,
-        Token::Mod,
-        Token::Divides,
-        Token::Times,
-    ]);
-    operators.get(token).is_some()
-}
-
-fn is_data_type_keyword(token: &Token) -> bool {
-    let data_types: HashSet<Token> = HashSet::from([
-        Token::KeywordInt,
-        Token::KeywordFloat,
-        Token::KeywordBool,
-        Token::KeywordString,
-    ]);
-
-    data_types.get(token).is_some()
-}
+use std::{collections::HashMap, str::FromStr};
 
 #[derive(PartialEq)]
 pub enum Associativity {
@@ -109,7 +84,7 @@ impl Parser {
                     None => return Err(format!("Undefined variable or function: {:?}", ident)),
                 },
 
-                operator if is_operator(operator) => {
+                operator if operator.is_operator() => {
                     if expressions.len() >= 2 {
                         let rhs = Box::new(expressions.pop().unwrap());
                         let lhs = Box::new(expressions.pop().unwrap());
@@ -146,7 +121,7 @@ impl Parser {
 
     fn parse_statement(&mut self) -> Result<Ast, String> {
         println!("PARSING STATEMENT: {:?}", self.current_token);
-        if is_data_type_keyword(&self.current_token) {
+        if self.current_token.is_data_type_keyword() {
             return Ok(Ast::Assignment(self.parse_assignment()?));
         }
         Err("Invalid statement".to_string())
@@ -249,7 +224,7 @@ impl Parser {
                 }
 
                 // TODO: Refactor excessive clone
-                op if is_operator(op) => {
+                op if op.is_operator() => {
                     println!("FOUND OPERATOR: {:?}", op);
                     while !operators.is_empty() {
                         let top = operators.last().unwrap().clone();
@@ -388,7 +363,7 @@ impl Parser {
             self.advance();
 
             // Function is not well formed
-            if !is_data_type_keyword(&self.current_token) {
+            if !self.current_token.is_data_type_keyword() {
                 return None;
             }
             // TODO: Avoid "unwrap"
@@ -411,9 +386,7 @@ impl Parser {
 
         while self.current_token != Token::RightCurly {
             let statement = match &self.current_token {
-                data_type if is_data_type_keyword(data_type) => {
-                    Ast::Assignment(self.parse_assignment()?)
-                }
+                token if token.is_data_type_keyword() => Ast::Assignment(self.parse_assignment()?),
                 _ => return Err(format!("Invalid token: {:?}", self.current_token)),
             };
             self.advance();
@@ -457,7 +430,7 @@ impl Parser {
 
         while self.current_token != Token::Eof {
             match &self.current_token {
-                _ if is_data_type_keyword(&self.current_token) => {
+                _ if self.current_token.is_data_type_keyword() => {
                     let variable_declaration = self.parse_statement()?;
                     ast.push(variable_declaration.clone());
                     println!("CURRENT STATEMENT: {:?}", variable_declaration);
