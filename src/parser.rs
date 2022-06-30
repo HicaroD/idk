@@ -175,37 +175,23 @@ impl Parser {
         let mut operands: Vec<Token> = vec![];
 
         loop {
-            println!("CURRENT TOKEN: {:?}", self.current_token);
             if self.is_end_of_statement() {
                 break;
             }
 
             match &self.current_token {
-                Token::Number(_) => {
-                    println!("ADDING NUMBER TO OPERANDS: {:?}", self.current_token);
-                    operands.push(self.current_token.clone());
-                }
-
-                Token::Identifier(_) => {
-                    println!("FOUND AN IDENTIFIER");
+                Token::Number(_) | Token::Identifier(_) => {
                     operands.push(self.current_token.clone());
                 }
 
                 Token::LeftPar => {
-                    println!(
-                        "ADDING LEFT PARENTHESIS TO OPERATORS: {:?}",
-                        self.current_token
-                    );
                     operators.push(self.current_token.clone());
                 }
 
                 Token::RightPar => {
-                    println!("FOUND RIGHT PARENTHESIS");
-
                     let mut found_left_parenthesis = false;
                     while !operators.is_empty() {
                         if *operators.last().unwrap() == Token::LeftPar {
-                            println!("FOUND LEFT PARENTHESIS");
                             found_left_parenthesis = true;
                             break;
                         } else {
@@ -218,26 +204,20 @@ impl Parser {
                         return Err("Error: Left parenthesis not found".to_string());
                     } else {
                         // DISCARD LEFT PARENTHESIS AT THE TOP
-                        println!("FOUND LEFT PARENTHESIS -> DISCARDING NOW");
                         operators.pop().unwrap();
                     }
                 }
 
                 // TODO: Refactor excessive clone
                 op if op.is_operator() => {
-                    println!("FOUND OPERATOR: {:?}", op);
                     while !operators.is_empty() {
                         let top = operators.last().unwrap().clone();
-                        println!("TOP OPERATOR ON OPERATOR MATCHING: {:?}", top);
-                        println!("CURRENT OPERATOR ON OPERATOR MATCHING: {:?}", op);
                         if top == Token::LeftPar {
                             break;
-                        }
-                        if self.has_higher_precedence(&top, &op)
+                        } else if self.has_higher_precedence(&top, &op)
                             || self.has_same_precedence(&top, &op)
                                 && self.get_associativity(&op) == Associativity::Left
                         {
-                            println!("IS {:?} LOWER THAN {:?}", op, top);
                             operands.push(operators.pop().unwrap());
                         } else {
                             break;
@@ -250,8 +230,6 @@ impl Parser {
                     return Err(format!("Error: Invalid token: {:?}", self.current_token));
                 }
             };
-
-            println!("ADVANCING TOKEN: {:?}", self.current_token);
             self.advance();
         }
 
@@ -389,8 +367,8 @@ impl Parser {
                 token if token.is_data_type_keyword() => Ast::Assignment(self.parse_assignment()?),
                 _ => return Err(format!("Invalid token: {:?}", self.current_token)),
             };
-            self.advance();
             body.push(statement);
+            self.advance();
         }
         Ok(Block::new(body))
     }
