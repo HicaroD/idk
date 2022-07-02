@@ -208,9 +208,8 @@ impl Parser {
                 op if op.is_operator() => {
                     while !operators.is_empty() {
                         let top = operators.last().unwrap().clone();
-                        if top == Token::LeftPar {
-                            break;
-                        } else if self.has_higher_precedence(&top, &op)
+
+                        if top != Token::LeftPar && self.has_higher_precedence(&top, &op)
                             || self.has_same_precedence(&top, &op)
                                 && self.get_associativity(&op) == Associativity::Left
                         {
