@@ -18,5 +18,4 @@ fn main(): int {
 The compiler is a work in progress and it is very far from being ready to be used.
 
 ## License 
-This project is licensed under the Apache License 2.0. See
-[LICENSE](LICENSE).
+This project is licensed under the Apache License 2.0. See [LICENSE](LICENSE).
