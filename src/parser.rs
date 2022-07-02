@@ -2,13 +2,6 @@ use crate::{ast::*, lexer::*};
 
 use std::{collections::HashMap, str::FromStr};
 
-#[derive(PartialEq)]
-pub enum Associativity {
-    Left,
-    Right,
-    Undefined,
-}
-
 // TODO: The result of an expression is not always an f64
 fn evaluate_ast(expression: Expression) -> Result<f64, String> {
     match expression {
@@ -34,6 +27,13 @@ fn evaluate_ast(expression: Expression) -> Result<f64, String> {
 
         _ => Err(format!("Expression not implemented: {:?}", expression)),
     }
+}
+
+#[derive(PartialEq)]
+pub enum Associativity {
+    Left,
+    Right,
+    Undefined,
 }
 
 pub struct Parser {
@@ -324,29 +324,25 @@ impl Parser {
     //       it is not well formed
     //
     //       I'll need to know when these different errors happen.
-    fn parse_function_return_type(&mut self) -> Option<Type> {
-        // Function with no return type
+    fn parse_function_return_type(&mut self) -> Result<Type, String> {
         self.advance();
 
         if self.current_token == Token::LeftCurly {
-            return None;
-        }
-
-        if self.current_token == Token::Colon {
+            return Ok(Type::Void);
+        } else if self.current_token == Token::Colon {
             self.advance();
 
             // Function is not well formed
             if !self.current_token.is_data_type_keyword() {
-                return None;
+                return Err("Expected return type for function".to_string());
             }
-            // TODO: Avoid "unwrap"
-            let variable_type = self.parse_type().unwrap();
+
+            let variable_type = self.parse_type()?;
             self.advance();
-            return Some(variable_type);
+            return Ok(variable_type);
         }
 
-        // Function is not well formed
-        None
+        Err("Expected left curly brace or return type declaration".to_string())
     }
 
     fn parse_block(&mut self) -> Result<Block, String> {
@@ -374,13 +370,11 @@ impl Parser {
 
         let function_name = self.parse_identifier()?;
         self.advance();
-
         let parameters = self.parse_function_parameters()?;
-
-        // Assuming that function is always well formed and "None" means that the function has
-        // no return type
-        let return_type = self.parse_function_return_type();
-
+        let return_type = match self.parse_function_return_type()? {
+            Type::Void => None,
+            t => Some(t),
+        };
         let body: Block = self.parse_block()?;
 
         if self.current_token != Token::RightCurly {

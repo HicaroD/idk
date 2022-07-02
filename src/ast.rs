@@ -3,6 +3,7 @@ use std::boxed::Box;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Type {
+    Void,
     Int,
     Float,
     Bool,
