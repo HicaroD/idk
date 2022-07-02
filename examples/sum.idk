@@ -1,4 +1,3 @@
 fn main(): int {
-    int a = 12;
-    int b = a + 12;
+    int b = 12 + 12;
 }

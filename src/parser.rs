@@ -2,6 +2,33 @@ use crate::{ast::*, lexer::*};
 
 use std::{collections::HashMap, str::FromStr};
 
+// TODO: The result of an expression is not always an f64
+fn evaluate_ast(expression: Expression) -> Result<f64, String> {
+    match expression {
+        Expression::Int(value) => Ok(f64::from(value)),
+
+        Expression::Float(value) => Ok(value),
+
+        Expression::BinaryExpr(lhs, operation, rhs) => {
+            let left = evaluate_ast(*lhs)?;
+            let right = evaluate_ast(*rhs)?;
+
+            match operation {
+                Token::Plus => Ok(left + right),
+                Token::Minus => Ok(left - right),
+                Token::Times => Ok(left * right),
+                Token::Divides => Ok(left / right),
+                _ => Err(format!(
+                    "Operator not implemented or invalid: {:?}",
+                    operation
+                )),
+            }
+        }
+
+        _ => Err(format!("Expression not implemented: {:?}", expression)),
+    }
+}
+
 #[derive(PartialEq)]
 pub enum Associativity {
     Left,
@@ -9,43 +36,10 @@ pub enum Associativity {
     Undefined,
 }
 
-struct ASTEvaluator {}
-
-impl ASTEvaluator {
-    // TODO: The result of an expression is not always an f64
-    fn evaluate(expression: Expression) -> Result<f64, String> {
-        match expression {
-            Expression::Int(value) => Ok(f64::from(value)),
-
-            Expression::Float(value) => Ok(value),
-
-            Expression::BinaryExpr(lhs, operation, rhs) => {
-                let left = ASTEvaluator::evaluate(*lhs)?;
-                let right = ASTEvaluator::evaluate(*rhs)?;
-
-                match operation {
-                    Token::Plus => Ok(left + right),
-                    Token::Minus => Ok(left - right),
-                    Token::Times => Ok(left * right),
-                    Token::Divides => Ok(left / right),
-                    _ => Err(format!(
-                        "Operator not implemented or invalid: {:?}",
-                        operation
-                    )),
-                }
-            }
-
-            _ => Err(format!("Expression not implemented: {:?}", expression)),
-        }
-    }
-}
-
 pub struct Parser {
     tokens: Vec<Token>,
     current_token: Token,
     position: usize,
-    // TODO: implement scope system (each variable has its own scope)
-    // Each block has its own symbol table
     symbol_table: HashMap<String, Ast>,
 }
 
@@ -76,14 +70,13 @@ impl Parser {
                     expressions.push(self.parse_number(value)?);
                 }
 
-                Token::Identifier(ident) => match self.symbol_table.get(ident) {
-                    Some(ast) => match ast {
-                        Ast::Assignment(assignment) => expressions.push(assignment.value.clone()),
-                        _ => return Err(format!("Unexpected identifier: {:?}", ident)),
-                    },
-                    None => return Err(format!("Undefined variable or function: {:?}", ident)),
-                },
-
+                // Token::Identifier(ident) => match self.symbol_table.get(ident) {
+                //     Some(ast) => match ast {
+                //         Ast::Assignment(assignment) => expressions.push(assignment.value.clone()),
+                //         _ => return Err(format!("Unexpected identifier: {:?}", ident)),
+                //     },
+                //     None => return Err(format!("Undefined variable or function: {:?}", ident)),
+                // },
                 operator if operator.is_operator() => {
                     if expressions.len() >= 2 {
                         let rhs = Box::new(expressions.pop().unwrap());
@@ -175,37 +168,23 @@ impl Parser {
         let mut operands: Vec<Token> = vec![];
 
         loop {
-            println!("CURRENT TOKEN: {:?}", self.current_token);
             if self.is_end_of_statement() {
                 break;
             }
 
             match &self.current_token {
-                Token::Number(_) => {
-                    println!("ADDING NUMBER TO OPERANDS: {:?}", self.current_token);
-                    operands.push(self.current_token.clone());
-                }
-
-                Token::Identifier(_) => {
-                    println!("FOUND AN IDENTIFIER");
+                Token::Number(_) | Token::Identifier(_) => {
                     operands.push(self.current_token.clone());
                 }
 
                 Token::LeftPar => {
-                    println!(
-                        "ADDING LEFT PARENTHESIS TO OPERATORS: {:?}",
-                        self.current_token
-                    );
                     operators.push(self.current_token.clone());
                 }
 
                 Token::RightPar => {
-                    println!("FOUND RIGHT PARENTHESIS");
-
                     let mut found_left_parenthesis = false;
                     while !operators.is_empty() {
                         if *operators.last().unwrap() == Token::LeftPar {
-                            println!("FOUND LEFT PARENTHESIS");
                             found_left_parenthesis = true;
                             break;
                         } else {
@@ -218,26 +197,19 @@ impl Parser {
                         return Err("Error: Left parenthesis not found".to_string());
                     } else {
                         // DISCARD LEFT PARENTHESIS AT THE TOP
-                        println!("FOUND LEFT PARENTHESIS -> DISCARDING NOW");
                         operators.pop().unwrap();
                     }
                 }
 
                 // TODO: Refactor excessive clone
                 op if op.is_operator() => {
-                    println!("FOUND OPERATOR: {:?}", op);
                     while !operators.is_empty() {
                         let top = operators.last().unwrap().clone();
-                        println!("TOP OPERATOR ON OPERATOR MATCHING: {:?}", top);
-                        println!("CURRENT OPERATOR ON OPERATOR MATCHING: {:?}", op);
-                        if top == Token::LeftPar {
-                            break;
-                        }
-                        if self.has_higher_precedence(&top, &op)
+
+                        if top != Token::LeftPar && self.has_higher_precedence(&top, &op)
                             || self.has_same_precedence(&top, &op)
                                 && self.get_associativity(&op) == Associativity::Left
                         {
-                            println!("IS {:?} LOWER THAN {:?}", op, top);
                             operands.push(operators.pop().unwrap());
                         } else {
                             break;
@@ -250,8 +222,6 @@ impl Parser {
                     return Err(format!("Error: Invalid token: {:?}", self.current_token));
                 }
             };
-
-            println!("ADVANCING TOKEN: {:?}", self.current_token);
             self.advance();
         }
 
@@ -312,12 +282,10 @@ impl Parser {
         let expression = self.parse_expression()?;
         self.parse_semicolon()?;
 
-        let evaluated_expression = ASTEvaluator::evaluate(expression.clone())?;
-        println!("EVALUATED EXPRESSION: {}", evaluated_expression);
+        // let evaluated_expression = evaluate_ast(expression.clone())?;
+        // println!("EVALUATED EXPRESSION: {}", evaluated_expression);
 
         let assignment = Assignment::new(var_type, name.clone(), expression);
-        self.symbol_table
-            .insert(name, Ast::Assignment(assignment.clone()));
         Ok(assignment)
     }
 
@@ -351,29 +319,25 @@ impl Parser {
     //       it is not well formed
     //
     //       I'll need to know when these different errors happen.
-    fn parse_function_return_type(&mut self) -> Option<Type> {
-        // Function with no return type
+    fn parse_function_return_type(&mut self) -> Result<Type, String> {
         self.advance();
 
         if self.current_token == Token::LeftCurly {
-            return None;
-        }
-
-        if self.current_token == Token::Colon {
+            return Ok(Type::Void);
+        } else if self.current_token == Token::Colon {
             self.advance();
 
             // Function is not well formed
             if !self.current_token.is_data_type_keyword() {
-                return None;
+                return Err("Expected return type for function".to_string());
             }
-            // TODO: Avoid "unwrap"
-            let variable_type = self.parse_type().unwrap();
+
+            let variable_type = self.parse_type()?;
             self.advance();
-            return Some(variable_type);
+            return Ok(variable_type);
         }
 
-        // Function is not well formed
-        None
+        Err("Expected left curly brace or return type declaration".to_string())
     }
 
     fn parse_block(&mut self) -> Result<Block, String> {
@@ -383,16 +347,22 @@ impl Parser {
         self.advance();
 
         let mut body: Vec<Ast> = vec![];
+        let mut symbol_table: HashMap<String, Ast> = HashMap::new();
 
         while self.current_token != Token::RightCurly {
             let statement = match &self.current_token {
-                token if token.is_data_type_keyword() => Ast::Assignment(self.parse_assignment()?),
+                token if token.is_data_type_keyword() => {
+                    let assignment = self.parse_assignment()?;
+                    symbol_table
+                        .insert(assignment.name.clone(), Ast::Assignment(assignment.clone()));
+                    Ast::Assignment(assignment)
+                }
                 _ => return Err(format!("Invalid token: {:?}", self.current_token)),
             };
-            self.advance();
             body.push(statement);
+            self.advance();
         }
-        Ok(Block::new(body))
+        Ok(Block::new(body, symbol_table))
     }
 
     fn parse_function(&mut self) -> Result<Function, String> {
@@ -401,13 +371,11 @@ impl Parser {
 
         let function_name = self.parse_identifier()?;
         self.advance();
-
         let parameters = self.parse_function_parameters()?;
-
-        // Assuming that function is always well formed and "None" means that the function has
-        // no return type
-        let return_type = self.parse_function_return_type();
-
+        let return_type = match self.parse_function_return_type()? {
+            Type::Void => None,
+            t => Some(t),
+        };
         let body: Block = self.parse_block()?;
 
         if self.current_token != Token::RightCurly {
@@ -491,7 +459,7 @@ mod tests {
         let var = &variable_ast[0];
         if let Ast::Assignment(variable) = var {
             let expression = variable.value.clone();
-            let value = ASTEvaluator::evaluate(expression).unwrap();
+            let value = evaluate_ast(expression).unwrap();
             assert_eq!(value, 1.0);
         } else {
             panic!("This should be a variable declaration!");
@@ -509,7 +477,7 @@ mod tests {
         let function = Function::new(
             "name".to_string(),
             vec![],
-            Block::new(vec![]),
+            Block::new(vec![], HashMap::new()),
             Some(Type::Int),
         );
         let expected_result = Ast::Function(function);
@@ -526,15 +494,20 @@ mod tests {
         let mut parser = Parser::new(tokens);
         let function_ast = &parser.generate_ast().unwrap()[0];
 
-        let block = vec![Ast::Assignment(Assignment::new(
+        let assignment = Ast::Assignment(Assignment::new(
             Type::Int,
             "a".to_string(),
             Expression::Int(12),
-        ))];
+        ));
+
+        let block = vec![assignment.clone()];
+        let mut symbol_table = HashMap::new();
+        symbol_table.insert("a".to_string(), assignment);
+
         let expected_function = Ast::Function(Function::new(
             "name".to_string(),
             vec![],
-            Block::new(block),
+            Block::new(block, symbol_table),
             Some(Type::Int),
         ));
         assert_eq!(expected_function, *function_ast)

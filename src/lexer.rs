@@ -7,6 +7,7 @@ pub enum Token {
     StringValue(String),
     Identifier(String),
 
+    // Keywords
     KeywordFn,     // fn
     KeywordIf,     // if
     KeywordElif,   // elif
@@ -62,6 +63,7 @@ pub enum Token {
 }
 
 impl Token {
+    // FIXME: is a HashSet too much? Could I just use a match statement?
     pub fn is_operator(&self) -> bool {
         let operators: HashSet<Token> = HashSet::from([
             Token::Plus,

@@ -1,8 +1,10 @@
 use crate::lexer::Token;
 use std::boxed::Box;
+use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Type {
+    Void,
     Int,
     Float,
     Bool,
@@ -56,11 +58,15 @@ impl Parameter {
 #[derive(Debug, Clone, PartialEq)]
 pub struct Block {
     itens: Vec<Ast>,
+    symbol_table: HashMap<String, Ast>,
 }
 
 impl Block {
-    pub fn new(itens: Vec<Ast>) -> Self {
-        Self { itens }
+    pub fn new(itens: Vec<Ast>, symbol_table: HashMap<String, Ast>) -> Self {
+        Self {
+            itens,
+            symbol_table,
+        }
     }
 }
 
