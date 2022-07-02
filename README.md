@@ -1,6 +1,6 @@
 # idk
 
-idk is an open source programming language. 
+idk is an open source general purpose programming language. 
 
 ```rust
 fn main(): int {
