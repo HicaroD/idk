@@ -9,34 +9,30 @@ pub enum Associativity {
     Undefined,
 }
 
-struct ASTEvaluator {}
+// TODO: The result of an expression is not always an f64
+fn evaluate_ast(expression: Expression) -> Result<f64, String> {
+    match expression {
+        Expression::Int(value) => Ok(f64::from(value)),
 
-impl ASTEvaluator {
-    // TODO: The result of an expression is not always an f64
-    fn evaluate(expression: Expression) -> Result<f64, String> {
-        match expression {
-            Expression::Int(value) => Ok(f64::from(value)),
+        Expression::Float(value) => Ok(value),
 
-            Expression::Float(value) => Ok(value),
+        Expression::BinaryExpr(lhs, operation, rhs) => {
+            let left = evaluate_ast(*lhs)?;
+            let right = evaluate_ast(*rhs)?;
 
-            Expression::BinaryExpr(lhs, operation, rhs) => {
-                let left = ASTEvaluator::evaluate(*lhs)?;
-                let right = ASTEvaluator::evaluate(*rhs)?;
-
-                match operation {
-                    Token::Plus => Ok(left + right),
-                    Token::Minus => Ok(left - right),
-                    Token::Times => Ok(left * right),
-                    Token::Divides => Ok(left / right),
-                    _ => Err(format!(
-                        "Operator not implemented or invalid: {:?}",
-                        operation
-                    )),
-                }
+            match operation {
+                Token::Plus => Ok(left + right),
+                Token::Minus => Ok(left - right),
+                Token::Times => Ok(left * right),
+                Token::Divides => Ok(left / right),
+                _ => Err(format!(
+                    "Operator not implemented or invalid: {:?}",
+                    operation
+                )),
             }
-
-            _ => Err(format!("Expression not implemented: {:?}", expression)),
         }
+
+        _ => Err(format!("Expression not implemented: {:?}", expression)),
     }
 }
 
@@ -290,7 +286,7 @@ impl Parser {
         let expression = self.parse_expression()?;
         self.parse_semicolon()?;
 
-        let evaluated_expression = ASTEvaluator::evaluate(expression.clone())?;
+        let evaluated_expression = evaluate_ast(expression.clone())?;
         println!("EVALUATED EXPRESSION: {}", evaluated_expression);
 
         let assignment = Assignment::new(var_type, name.clone(), expression);
@@ -469,7 +465,7 @@ mod tests {
         let var = &variable_ast[0];
         if let Ast::Assignment(variable) = var {
             let expression = variable.value.clone();
-            let value = ASTEvaluator::evaluate(expression).unwrap();
+            let value = evaluate_ast(expression).unwrap();
             assert_eq!(value, 1.0);
         } else {
             panic!("This should be a variable declaration!");
