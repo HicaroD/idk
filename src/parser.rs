@@ -40,8 +40,6 @@ pub struct Parser {
     tokens: Vec<Token>,
     current_token: Token,
     position: usize,
-    // TODO: implement scope system (each variable has its own scope)
-    // Each block has its own symbol table
     symbol_table: HashMap<String, Ast>,
 }
 
@@ -72,14 +70,13 @@ impl Parser {
                     expressions.push(self.parse_number(value)?);
                 }
 
-                Token::Identifier(ident) => match self.symbol_table.get(ident) {
-                    Some(ast) => match ast {
-                        Ast::Assignment(assignment) => expressions.push(assignment.value.clone()),
-                        _ => return Err(format!("Unexpected identifier: {:?}", ident)),
-                    },
-                    None => return Err(format!("Undefined variable or function: {:?}", ident)),
-                },
-
+                // Token::Identifier(ident) => match self.symbol_table.get(ident) {
+                //     Some(ast) => match ast {
+                //         Ast::Assignment(assignment) => expressions.push(assignment.value.clone()),
+                //         _ => return Err(format!("Unexpected identifier: {:?}", ident)),
+                //     },
+                //     None => return Err(format!("Undefined variable or function: {:?}", ident)),
+                // },
                 operator if operator.is_operator() => {
                     if expressions.len() >= 2 {
                         let rhs = Box::new(expressions.pop().unwrap());
@@ -285,12 +282,10 @@ impl Parser {
         let expression = self.parse_expression()?;
         self.parse_semicolon()?;
 
-        let evaluated_expression = evaluate_ast(expression.clone())?;
-        println!("EVALUATED EXPRESSION: {}", evaluated_expression);
+        // let evaluated_expression = evaluate_ast(expression.clone())?;
+        // println!("EVALUATED EXPRESSION: {}", evaluated_expression);
 
         let assignment = Assignment::new(var_type, name.clone(), expression);
-        self.symbol_table
-            .insert(name, Ast::Assignment(assignment.clone()));
         Ok(assignment)
     }
 
@@ -352,16 +347,22 @@ impl Parser {
         self.advance();
 
         let mut body: Vec<Ast> = vec![];
+        let mut symbol_table: HashMap<String, Ast> = HashMap::new();
 
         while self.current_token != Token::RightCurly {
             let statement = match &self.current_token {
-                token if token.is_data_type_keyword() => Ast::Assignment(self.parse_assignment()?),
+                token if token.is_data_type_keyword() => {
+                    let assignment = self.parse_assignment()?;
+                    symbol_table
+                        .insert(assignment.name.clone(), Ast::Assignment(assignment.clone()));
+                    Ast::Assignment(assignment)
+                }
                 _ => return Err(format!("Invalid token: {:?}", self.current_token)),
             };
             body.push(statement);
             self.advance();
         }
-        Ok(Block::new(body))
+        Ok(Block::new(body, symbol_table))
     }
 
     fn parse_function(&mut self) -> Result<Function, String> {
@@ -476,7 +477,7 @@ mod tests {
         let function = Function::new(
             "name".to_string(),
             vec![],
-            Block::new(vec![]),
+            Block::new(vec![], HashMap::new()),
             Some(Type::Int),
         );
         let expected_result = Ast::Function(function);
@@ -493,15 +494,20 @@ mod tests {
         let mut parser = Parser::new(tokens);
         let function_ast = &parser.generate_ast().unwrap()[0];
 
-        let block = vec![Ast::Assignment(Assignment::new(
+        let assignment = Ast::Assignment(Assignment::new(
             Type::Int,
             "a".to_string(),
             Expression::Int(12),
-        ))];
+        ));
+
+        let block = vec![assignment.clone()];
+        let mut symbol_table = HashMap::new();
+        symbol_table.insert("a".to_string(), assignment);
+
         let expected_function = Ast::Function(Function::new(
             "name".to_string(),
             vec![],
-            Block::new(block),
+            Block::new(block, symbol_table),
             Some(Type::Int),
         ));
         assert_eq!(expected_function, *function_ast)
