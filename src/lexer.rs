@@ -3,8 +3,10 @@ use std::collections::{HashMap, HashSet};
 
 #[derive(Debug, Clone, PartialEq, Hash, Eq)]
 pub enum Token {
-    Number(String),
+    IntNumber(String),
+    FloatNumber(String),
     StringValue(String),
+
     Identifier(String),
 
     // Keywords
@@ -95,6 +97,13 @@ impl Token {
             token => Err(format!("Can't parse type: {:?}", token)),
         }
     }
+
+    pub fn is_number(&self) -> bool {
+        match self {
+            Token::IntNumber(_) | Token::FloatNumber(_) => true,
+            _ => false,
+        }
+    }
 }
 
 pub struct Lexer {
@@ -173,12 +182,21 @@ impl Lexer {
         let mut number = String::from(self.current_char);
         self.advance();
 
+        let mut is_float = false;
+
         while self.current_char.is_ascii_digit() || self.current_char == '.' {
+            if self.current_char == '.' {
+                is_float = true;
+            }
             number.push(self.current_char);
             self.advance();
         }
 
-        Token::Number(number)
+        if is_float {
+            Token::FloatNumber(number)
+        } else {
+            Token::IntNumber(number)
+        }
     }
 
     fn get_string(&mut self) -> Token {
@@ -356,7 +374,7 @@ mod tests {
             Token::KeywordInt,
             Token::Identifier("variable_name".to_string()),
             Token::EqualSign,
-            Token::Number("12".to_string()),
+            Token::IntNumber("12".to_string()),
             Token::Semicolon,
             Token::Eof,
         ];

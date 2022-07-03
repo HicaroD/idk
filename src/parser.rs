@@ -65,7 +65,7 @@ impl Parser {
 
         for token in rpn.iter() {
             match token {
-                Token::Number(value) => {
+                Token::FloatNumber(value) | Token::IntNumber(value) => {
                     println!("ADD NUMBER TO STACK {:?}", value);
                     expressions.push(self.parse_number(value)?);
                 }
@@ -173,7 +173,11 @@ impl Parser {
             }
 
             match &self.current_token {
-                Token::Number(_) | Token::Identifier(_) => {
+                number if self.current_token.is_number() => {
+                    operands.push(number.clone());
+                }
+
+                Token::Identifier(_) => {
                     operands.push(self.current_token.clone());
                 }
 
