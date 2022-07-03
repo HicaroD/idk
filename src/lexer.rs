@@ -99,10 +99,7 @@ impl Token {
     }
 
     pub fn is_number(&self) -> bool {
-        match self {
-            Token::IntNumber(_) | Token::FloatNumber(_) => true,
-            _ => false,
-        }
+        matches!(self, Token::IntNumber(_) | Token::FloatNumber(_))
     }
 }
 
