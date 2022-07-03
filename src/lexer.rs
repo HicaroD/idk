@@ -73,6 +73,7 @@ impl Token {
             Token::Mod,
             Token::Divides,
             Token::Times,
+            Token::Power,
         ]);
         operators.get(self).is_some()
     }
