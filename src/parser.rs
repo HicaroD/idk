@@ -210,9 +210,9 @@ impl Parser {
                     while !operators.is_empty() {
                         let top = operators.last().unwrap().clone();
 
-                        if top != Token::LeftPar && self.has_higher_precedence(&top, &op)
-                            || self.has_same_precedence(&top, &op)
-                                && self.get_associativity(&op) == Associativity::Left
+                        if top != Token::LeftPar && self.has_higher_precedence(&top, op)
+                            || self.has_same_precedence(&top, op)
+                                && self.get_associativity(op) == Associativity::Left
                         {
                             operands.push(operators.pop().unwrap());
                         } else {
@@ -289,7 +289,7 @@ impl Parser {
         // let evaluated_expression = evaluate_ast(expression.clone())?;
         // println!("EVALUATED EXPRESSION: {}", evaluated_expression);
 
-        let assignment = Assignment::new(var_type, name.clone(), expression);
+        let assignment = Assignment::new(var_type, name, expression);
         Ok(assignment)
     }
 
