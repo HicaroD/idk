@@ -41,8 +41,8 @@ impl Assignment {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Parameter {
-    parameter_type: Type,
-    name: String,
+    pub parameter_type: Type,
+    pub name: String,
     // TODO: add optional default value for a parameter
 }
 
@@ -73,10 +73,10 @@ impl Block {
 // TODO: Implement return instruction on function body
 #[derive(Debug, Clone, PartialEq)]
 pub struct Function {
-    name: String,
-    parameters: Vec<Parameter>,
-    body: Block,
-    return_type: Option<Type>,
+    pub name: String,
+    pub parameters: Vec<Parameter>,
+    pub body: Block,
+    pub return_type: Option<Type>,
 }
 
 impl Function {
