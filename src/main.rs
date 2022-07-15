@@ -1,9 +1,9 @@
 mod ast;
-mod codegen;
+mod backend;
 mod lexer;
 mod parser;
 
-use codegen::CodeGen;
+use backend::c;
 use lexer::Lexer;
 use parser::Parser;
 use std::{env, fs, io, path::Path};
@@ -55,8 +55,8 @@ fn main() -> io::Result<()> {
     println!("--ENDING PARSER--");
 
     println!("--STARTING CODE GENERATION--");
-    let code_generator = CodeGen::new(ast);
-    code_generator.generate_c_code();
+    let c = c::C::new(ast);
+    c.generate_c_code();
     println!("--STARTING CODE GENERATION--");
     Ok(())
 }

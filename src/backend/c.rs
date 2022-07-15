@@ -2,11 +2,11 @@ use crate::ast::*;
 use std::fs::File;
 use std::io::Write;
 
-pub struct CodeGen {
+pub struct C {
     ast: Vec<Ast>,
 }
 
-impl CodeGen {
+impl C {
     pub fn new(ast: Vec<Ast>) -> Self {
         Self { ast }
     }
