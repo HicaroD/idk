@@ -3,7 +3,7 @@ mod backend;
 mod lexer;
 mod parser;
 
-use backend::c;
+use backend::*;
 use lexer::Lexer;
 use parser::Parser;
 use std::{env, fs, io, path::Path};
@@ -55,8 +55,8 @@ fn main() -> io::Result<()> {
     println!("--ENDING PARSER--");
 
     println!("--STARTING CODE GENERATION--");
-    let c = c::C::new(ast);
-    c.generate_c_code();
+    let mut code_generator = c::C::new();
+    code_generator.generate(ast);
     println!("--STARTING CODE GENERATION--");
     Ok(())
 }
