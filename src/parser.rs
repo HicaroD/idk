@@ -1,33 +1,6 @@
-use crate::{ast::*, lexer::*};
+use crate::{ast::*, backend::evaluate_ast, lexer::*};
 
 use std::{collections::HashMap, str::FromStr};
-
-// TODO: The result of an expression is not always an f64
-fn evaluate_ast(expression: Expression) -> Result<f64, String> {
-    match expression {
-        Expression::Int(value) => Ok(f64::from(value)),
-
-        Expression::Float(value) => Ok(value),
-
-        Expression::BinaryExpr(lhs, operation, rhs) => {
-            let left = evaluate_ast(*lhs)?;
-            let right = evaluate_ast(*rhs)?;
-
-            match operation {
-                Token::Plus => Ok(left + right),
-                Token::Minus => Ok(left - right),
-                Token::Times => Ok(left * right),
-                Token::Divides => Ok(left / right),
-                _ => Err(format!(
-                    "Operator not implemented or invalid: {:?}",
-                    operation
-                )),
-            }
-        }
-
-        _ => Err(format!("Expression not implemented: {:?}", expression)),
-    }
-}
 
 #[derive(PartialEq)]
 pub enum Associativity {
