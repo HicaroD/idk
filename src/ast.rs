@@ -57,8 +57,8 @@ impl Parameter {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Block {
-    itens: Vec<Ast>,
-    symbol_table: HashMap<String, Ast>,
+    pub itens: Vec<Ast>,
+    pub symbol_table: HashMap<String, Ast>,
 }
 
 impl Block {
