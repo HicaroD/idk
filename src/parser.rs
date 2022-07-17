@@ -1,6 +1,8 @@
-use crate::{ast::*, backend::evaluate_ast, lexer::*};
+use crate::{ast::*, lexer::*};
 
 use std::{collections::HashMap, str::FromStr};
+
+pub type Expression = Vec<Token>;
 
 pub struct Parser {
     tokens: Vec<Token>,
@@ -26,43 +28,43 @@ impl Parser {
         }
     }
 
-    fn from_rpn_to_ast(&self, rpn: Vec<Token>) -> Result<Expression, String> {
-        let mut expressions: Vec<Expression> = vec![];
+    //fn from_rpn_to_ast(&self, rpn: Vec<Token>) -> Result<Expression, String> {
+    //    let mut expressions: Vec<Expression> = vec![];
 
-        for token in rpn.iter() {
-            match token {
-                Token::FloatNumber(value) | Token::IntNumber(value) => {
-                    println!("ADD NUMBER TO STACK {:?}", value);
-                    expressions.push(self.parse_number(value)?);
-                }
+    //    for token in rpn.iter() {
+    //        match token {
+    //            Token::FloatNumber(value) | Token::IntNumber(value) => {
+    //                println!("ADD NUMBER TO STACK {:?}", value);
+    //                expressions.push(self.parse_number(value)?);
+    //            }
 
-                // Token::Identifier(ident) => match self.symbol_table.get(ident) {
-                //     Some(ast) => match ast {
-                //         Ast::Assignment(assignment) => expressions.push(assignment.value.clone()),
-                //         _ => return Err(format!("Unexpected identifier: {:?}", ident)),
-                //     },
-                //     None => return Err(format!("Undefined variable or function: {:?}", ident)),
-                // },
-                operator if operator.is_operator() => {
-                    if expressions.len() >= 2 {
-                        let rhs = Box::new(expressions.pop().unwrap());
-                        let lhs = Box::new(expressions.pop().unwrap());
-                        expressions.push(Expression::BinaryExpr(lhs, operator.clone(), rhs));
-                    } else {
-                        return Err("Error: Invalid expression".to_string());
-                    }
-                }
+    //            // Token::Identifier(ident) => match self.symbol_table.get(ident) {
+    //            //     Some(ast) => match ast {
+    //            //         Ast::Assignment(assignment) => expressions.push(assignment.value.clone()),
+    //            //         _ => return Err(format!("Unexpected identifier: {:?}", ident)),
+    //            //     },
+    //            //     None => return Err(format!("Undefined variable or function: {:?}", ident)),
+    //            // },
+    //            operator if operator.is_operator() => {
+    //                if expressions.len() >= 2 {
+    //                    let rhs = Box::new(expressions.pop().unwrap());
+    //                    let lhs = Box::new(expressions.pop().unwrap());
+    //                    expressions.push(Expression::BinaryExpr(lhs, operator.clone(), rhs));
+    //                } else {
+    //                    return Err("Error: Invalid expression".to_string());
+    //                }
+    //            }
 
-                _ => return Err("Invalid token on RPN expression".to_string()),
-            }
-        }
+    //            _ => return Err("Invalid token on RPN expression".to_string()),
+    //        }
+    //    }
 
-        if expressions.len() == 1 {
-            Ok(expressions[0].clone())
-        } else {
-            Err("Error: Invalid RPN expression".to_string())
-        }
-    }
+    // if expressions.len() == 1 {
+    //     Ok(expressions[0].clone())
+    // } else {
+    //     Err("Error: Invalid RPN expression".to_string())
+    // }
+    // }
 
     fn parse_type(&self) -> Result<Type, String> {
         println!("PARSING TYPE: {:?}", self.current_token);
@@ -86,25 +88,25 @@ impl Parser {
         Err("Invalid statement".to_string())
     }
 
-    fn parse_number(&self, number: &str) -> Result<Expression, String> {
-        if number.contains('.') {
-            match f64::from_str(number) {
-                Ok(value) => Ok(Expression::Float(value)),
-                Err(err) => Err(format!("Couldn't parse float value: {:?}", err)),
-            }
-        } else {
-            match i32::from_str(number) {
-                Ok(value) => Ok(Expression::Int(value)),
-                Err(err) => Err(format!("Couldn't parse integer value: {:?}", err)),
-            }
-        }
-    }
+    //fn parse_number(&self, number: &str) -> Result<Expression, String> {
+    //    if number.contains('.') {
+    //        match f64::from_str(number) {
+    //            Ok(value) => Ok(Expression::Float(value)),
+    //            Err(err) => Err(format!("Couldn't parse float value: {:?}", err)),
+    //        }
+    //    } else {
+    //        match i32::from_str(number) {
+    //            Ok(value) => Ok(Expression::Int(value)),
+    //            Err(err) => Err(format!("Couldn't parse integer value: {:?}", err)),
+    //        }
+    //    }
+    //}
 
     fn is_end_of_statement(&self) -> bool {
         self.current_token == Token::Semicolon
     }
 
-    fn get_rpn_expression(&mut self) -> Result<Vec<Token>, String> {
+    fn get_rpn_expression(&mut self) -> Result<Expression, String> {
         let mut operators: Vec<Token> = vec![];
         let mut operands: Vec<Token> = vec![];
 
@@ -188,9 +190,9 @@ impl Parser {
         for rpn_token in rpn_expression.iter() {
             println!("RPN: {:?}", rpn_token);
         }
-        let ast = self.from_rpn_to_ast(rpn_expression)?;
-        println!("AST: {:?}", ast);
-        Ok(ast)
+        // let ast = self.from_rpn_to_ast(rpn_expression)?;
+        // println!("AST: {:?}", ast);
+        Ok(rpn_expression)
     }
 
     fn parse_semicolon(&self) -> Result<(), String> {

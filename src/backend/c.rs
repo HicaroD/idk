@@ -1,6 +1,5 @@
 use crate::ast::*;
-use crate::backend::evaluate_ast;
-use crate::backend::CodeGenerator;
+use crate::backend::{evaluate_rpn_expression, CodeGenerator};
 use std::fs::File;
 use std::io::Write;
 
@@ -51,9 +50,7 @@ impl C {
                 Ast::Assignment(assignment) => {
                     statements += &self.build_c_assignment(assignment.clone())?
                 }
-                _ => {
-                    return Err("Unexpected AST node".to_string());
-                }
+                _ => return Err("Unexpected AST node".to_string()),
             };
         }
         Ok(statements)
@@ -62,7 +59,7 @@ impl C {
     pub fn build_c_assignment(&self, assignment: Assignment) -> Result<String, String> {
         let var_type = self.get_c_type(&assignment.var_type)?;
         let name = assignment.name;
-        let value = evaluate_ast(assignment.value)?.to_string();
+        let value = evaluate_rpn_expression(assignment.value)?.to_string();
 
         Ok(format!("\t{} {} = {};\n", var_type, name, value))
     }

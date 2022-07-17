@@ -1,4 +1,5 @@
 use crate::lexer::Token;
+use crate::parser::Expression;
 use std::boxed::Box;
 use std::collections::HashMap;
 
@@ -11,16 +12,16 @@ pub enum Type {
     StringType,
 }
 
-#[derive(Debug, Clone, PartialEq)]
-pub enum Expression {
-    Float(f64),
-    Int(i32),
-    StringLit(String),
-    Char(char),
-    Boolean(bool),
-    // FIXME: Performance issues with Box
-    BinaryExpr(Box<Expression>, Token, Box<Expression>),
-}
+//#[derive(Debug, Clone, PartialEq)]
+//pub enum Expression {
+//    Float(f64),
+//    Int(i32),
+//    StringLit(String),
+//    Char(char),
+//    Boolean(bool),
+//    // FIXME: Performance issues with Box
+//    BinaryExpr(Box<Expression>, Token, Box<Expression>),
+//}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Assignment {
