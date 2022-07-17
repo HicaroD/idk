@@ -1,1 +1,3 @@
-fn foo(int a, int b) {}
+fn foo(int a, int b) {
+    int a = 12;
+}
