@@ -1,6 +1,13 @@
 use crate::ast::Type;
 use std::collections::{HashMap, HashSet};
 
+#[derive(PartialEq)]
+pub enum Associativity {
+    Left,
+    Right,
+    Undefined,
+}
+
 #[derive(Debug, Clone, PartialEq, Hash, Eq)]
 pub enum Token {
     IntNumber(String),
@@ -101,6 +108,31 @@ impl Token {
 
     pub fn is_number(&self) -> bool {
         matches!(self, Token::IntNumber(_) | Token::FloatNumber(_))
+    }
+
+    pub fn get_associativity(&self) -> Associativity {
+        match self {
+            Token::Plus | Token::Minus | Token::Times | Token::Divides => Associativity::Left,
+            _ => Associativity::Undefined,
+        }
+    }
+
+    pub fn has_higher_precedence(&self, second_token: &Token) -> bool {
+        self.get_precedence() > second_token.get_precedence()
+    }
+
+    pub fn has_same_precedence(&self, second_token: &Token) -> bool {
+        self.get_precedence() == second_token.get_precedence()
+    }
+
+    pub fn get_precedence(&self) -> i8 {
+        match self {
+            Token::Plus => 1,
+            Token::Minus => 1,
+            Token::Times => 2,
+            Token::Divides => 2,
+            _ => -1,
+        }
     }
 }
 

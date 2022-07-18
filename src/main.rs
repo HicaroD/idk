@@ -1,30 +1,30 @@
 mod ast;
+mod backend;
+mod cli;
 mod lexer;
 mod parser;
 
+use backend::*;
+use clap::Parser as ClapParser;
+use cli::{get_target_language, Args, TargetLanguage};
 use lexer::Lexer;
 use parser::Parser;
-use std::{env, fs, io, path::Path};
+use std::{fs, io, path::Path};
 
-fn get_source_code(path: String) -> io::Result<Vec<char>> {
+fn get_source_code(path: &str) -> io::Result<Vec<char>> {
     return Ok(fs::read_to_string(path)?.chars().collect::<Vec<char>>());
 }
 
 fn main() -> io::Result<()> {
-    let args: Vec<String> = env::args().collect();
+    let args = Args::parse();
 
-    if args.len() < 2 {
-        eprintln!("Error: No input files");
-        std::process::exit(1);
-    }
-
-    let path = Path::new(&args[1]);
+    let path = Path::new(&args.file_name);
     if !path.exists() {
         eprintln!("Error: No such file or directory");
         std::process::exit(1);
     }
 
-    let source_code = get_source_code(args[1].clone())?;
+    let source_code = get_source_code(&args.file_name)?;
 
     if source_code.is_empty() {
         std::process::exit(1);
@@ -51,5 +51,20 @@ fn main() -> io::Result<()> {
     };
 
     println!("--ENDING PARSER--");
+
+    println!("--STARTING CODE GENERATION--");
+    let selected_language = get_target_language(&args.target_language);
+
+    let mut code_generator = match selected_language {
+        TargetLanguage::C => c::C::new(),
+        TargetLanguage::JavaScript => unimplemented!(),
+        TargetLanguage::Unknown(unknown_language) => {
+            eprintln!("Unknown target language: {}", unknown_language);
+            std::process::exit(1);
+        }
+    };
+
+    code_generator.generate(ast);
+    println!("--STARTING CODE GENERATION--");
     Ok(())
 }

@@ -1,40 +1,6 @@
-use crate::{ast::*, lexer::*};
+use crate::{ast::*, backend::evaluate_ast, lexer::*};
 
 use std::{collections::HashMap, str::FromStr};
-
-// TODO: The result of an expression is not always an f64
-fn evaluate_ast(expression: Expression) -> Result<f64, String> {
-    match expression {
-        Expression::Int(value) => Ok(f64::from(value)),
-
-        Expression::Float(value) => Ok(value),
-
-        Expression::BinaryExpr(lhs, operation, rhs) => {
-            let left = evaluate_ast(*lhs)?;
-            let right = evaluate_ast(*rhs)?;
-
-            match operation {
-                Token::Plus => Ok(left + right),
-                Token::Minus => Ok(left - right),
-                Token::Times => Ok(left * right),
-                Token::Divides => Ok(left / right),
-                _ => Err(format!(
-                    "Operator not implemented or invalid: {:?}",
-                    operation
-                )),
-            }
-        }
-
-        _ => Err(format!("Expression not implemented: {:?}", expression)),
-    }
-}
-
-#[derive(PartialEq)]
-pub enum Associativity {
-    Left,
-    Right,
-    Undefined,
-}
 
 pub struct Parser {
     tokens: Vec<Token>,
@@ -70,13 +36,6 @@ impl Parser {
                     expressions.push(self.parse_number(value)?);
                 }
 
-                // Token::Identifier(ident) => match self.symbol_table.get(ident) {
-                //     Some(ast) => match ast {
-                //         Ast::Assignment(assignment) => expressions.push(assignment.value.clone()),
-                //         _ => return Err(format!("Unexpected identifier: {:?}", ident)),
-                //     },
-                //     None => return Err(format!("Undefined variable or function: {:?}", ident)),
-                // },
                 operator if operator.is_operator() => {
                     if expressions.len() >= 2 {
                         let rhs = Box::new(expressions.pop().unwrap());
@@ -112,14 +71,6 @@ impl Parser {
         }
     }
 
-    fn parse_statement(&mut self) -> Result<Ast, String> {
-        println!("PARSING STATEMENT: {:?}", self.current_token);
-        if self.current_token.is_data_type_keyword() {
-            return Ok(Ast::Assignment(self.parse_assignment()?));
-        }
-        Err("Invalid statement".to_string())
-    }
-
     fn parse_number(&self, number: &str) -> Result<Expression, String> {
         if number.contains('.') {
             match f64::from_str(number) {
@@ -134,51 +85,34 @@ impl Parser {
         }
     }
 
-    fn get_associativity(&self, operator: &Token) -> Associativity {
-        match *operator {
-            Token::Plus | Token::Minus | Token::Times | Token::Divides => Associativity::Left,
-            _ => Associativity::Undefined,
-        }
-    }
-
-    fn get_precedence(&self, token: &Token) -> i8 {
-        match *token {
-            Token::Plus => 1,
-            Token::Minus => 1,
-            Token::Times => 2,
-            Token::Divides => 2,
-            _ => -1,
-        }
-    }
-
-    fn has_higher_precedence(&self, first_token: &Token, second_token: &Token) -> bool {
-        self.get_precedence(first_token) > self.get_precedence(second_token)
-    }
-
-    fn has_same_precedence(&self, first_token: &Token, second_token: &Token) -> bool {
-        self.get_precedence(first_token) == self.get_precedence(second_token)
-    }
-
     fn is_end_of_statement(&self) -> bool {
         self.current_token == Token::Semicolon
     }
 
-    fn get_rpn_expression(&mut self) -> Result<Vec<Token>, String> {
+    fn get_rpn_expression(&mut self, scope: &HashMap<String, Ast>) -> Result<Vec<Token>, String> {
         let mut operators: Vec<Token> = vec![];
         let mut operands: Vec<Token> = vec![];
 
-        loop {
-            if self.is_end_of_statement() {
-                break;
-            }
-
+        while !self.is_end_of_statement() {
             match &self.current_token {
                 number if self.current_token.is_number() => {
                     operands.push(number.clone());
                 }
 
-                Token::Identifier(_) => {
-                    operands.push(self.current_token.clone());
+                Token::Identifier(ident) => {
+                    if let Some(Ast::Assignment(variable)) = scope.get(ident) {
+                        println!("Found a variable: {:?}", variable);
+                        let value = evaluate_ast(variable.value.clone())?;
+                        let var = match &variable.var_type {
+                            // TODO: Convert string to number on the lexer to avoid this "to_string"
+                            Type::Int => Token::IntNumber(value.to_string()),
+                            Type::Float => Token::FloatNumber(value.to_string()),
+                            t => return Err(format!("Unsuported type: {:?}", t)),
+                        };
+                        operands.push(var);
+                    } else {
+                        return Err("Use of undeclared variable".to_string());
+                    }
                 }
 
                 Token::LeftPar => {
@@ -210,9 +144,9 @@ impl Parser {
                     while !operators.is_empty() {
                         let top = operators.last().unwrap().clone();
 
-                        if top != Token::LeftPar && self.has_higher_precedence(&top, op)
-                            || self.has_same_precedence(&top, op)
-                                && self.get_associativity(op) == Associativity::Left
+                        if top != Token::LeftPar && top.has_higher_precedence(op)
+                            || top.has_same_precedence(op)
+                                && op.get_associativity() == Associativity::Left
                         {
                             operands.push(operators.pop().unwrap());
                         } else {
@@ -240,9 +174,9 @@ impl Parser {
         Ok(operands)
     }
 
-    fn parse_expression(&mut self) -> Result<Expression, String> {
+    fn parse_expression(&mut self, scope: &HashMap<String, Ast>) -> Result<Expression, String> {
         println!("PARSING EXPRESSION: {:?}", self.current_token);
-        let rpn_expression = self.get_rpn_expression()?;
+        let rpn_expression = self.get_rpn_expression(scope)?;
 
         for rpn_token in rpn_expression.iter() {
             println!("RPN: {:?}", rpn_token);
@@ -276,14 +210,14 @@ impl Parser {
         }
     }
 
-    fn parse_assignment(&mut self) -> Result<Assignment, String> {
+    fn parse_assignment(&mut self, scope: &HashMap<String, Ast>) -> Result<Assignment, String> {
         let var_type = self.parse_type()?;
         self.advance();
         let name = self.parse_identifier()?;
         self.advance();
         self.parse_equal_sign()?;
         self.advance();
-        let expression = self.parse_expression()?;
+        let expression = self.parse_expression(scope)?;
         self.parse_semicolon()?;
 
         // let evaluated_expression = evaluate_ast(expression.clone())?;
@@ -318,11 +252,6 @@ impl Parser {
         Ok(parameters)
     }
 
-    // TODO: That function can have two types of errors (return None):
-    //       Either a function declaration doesn't specify the return type or
-    //       it is not well formed
-    //
-    //       I'll need to know when these different errors happen.
     fn parse_function_return_type(&mut self) -> Result<Type, String> {
         self.advance();
 
@@ -356,7 +285,7 @@ impl Parser {
         while self.current_token != Token::RightCurly {
             let statement = match &self.current_token {
                 token if token.is_data_type_keyword() => {
-                    let assignment = self.parse_assignment()?;
+                    let assignment = self.parse_assignment(&symbol_table)?;
                     symbol_table
                         .insert(assignment.name.clone(), Ast::Assignment(assignment.clone()));
                     Ast::Assignment(assignment)
@@ -402,13 +331,6 @@ impl Parser {
 
         while self.current_token != Token::Eof {
             match &self.current_token {
-                _ if self.current_token.is_data_type_keyword() => {
-                    let variable_declaration = self.parse_statement()?;
-                    ast.push(variable_declaration.clone());
-                    println!("CURRENT STATEMENT: {:?}", variable_declaration);
-                    self.advance();
-                }
-
                 Token::KeywordFn => {
                     let function = self.parse_function()?;
                     println!("FUNCTION: {:?}", function);

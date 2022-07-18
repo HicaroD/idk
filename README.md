@@ -13,6 +13,7 @@ fn main(): int {
 
 - Simple syntax
 - Statically typed
+- idk's back-end compiles to human-readable C
 
 ## Installation
 The compiler is a work in progress and it is very far from being ready to be used.
