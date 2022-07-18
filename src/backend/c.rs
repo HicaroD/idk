@@ -27,7 +27,7 @@ impl C {
             Type::Float => Ok("float"),
             Type::Bool => Ok("bool"),
             Type::StringType => Ok("char[]"),
-            _ => Err("Cannot get parameter type".to_string()),
+            _ => Err("Can't get parameter type".to_string()),
         }
     }
 
@@ -50,7 +50,7 @@ impl C {
                 Ast::Assignment(assignment) => {
                     statements += &self.build_c_assignment(assignment.clone())?
                 }
-                _ => return Err("Unexpected AST node".to_string()),
+                _ => return Err("Unable to generate C block".to_string()),
             };
         }
         Ok(statements)
@@ -87,7 +87,7 @@ impl C {
                         .write_all(self.build_c_function(function.clone())?.as_bytes());
                 }
 
-                _ => return Err("Invalid AST node".to_string()),
+                _ => return Err("Unable to generate C code".to_string()),
             }
         }
 
