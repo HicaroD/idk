@@ -21,6 +21,15 @@ impl C {
         }
     }
 
+    fn setup_code(&mut self) {
+        let libraries = vec!["stdio.h", "stdlib.h"];
+        for library in libraries.iter() {
+            self.source_code
+                .write_all(format!("#include \"{}\"\n", library).as_bytes());
+        }
+        self.source_code.write_all("\n".as_bytes());
+    }
+
     fn get_c_type(&self, type_: &Type) -> Result<&str, String> {
         match type_ {
             Type::Int => Ok("int"),
@@ -80,6 +89,8 @@ impl C {
     }
 
     pub fn generate_c_code(&mut self, ast: Vec<Ast>) -> Result<(), String> {
+        self.setup_code();
+
         for node in ast.iter() {
             match node {
                 Ast::Function(function) => {
