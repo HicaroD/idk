@@ -18,7 +18,7 @@ pub fn get_target_language(selected_language: &str) -> TargetLanguage {
 #[clap(author="Hícaro Dânrlley", version="0.1", about="A general purpose and open-source programming language", long_about = None)]
 pub struct Args {
     /// File name
-    #[clap(short = 'f', long = "name", value_parser)]
+    #[clap(short = 'n', long = "name", value_parser)]
     pub file_name: String,
 
     /// Target language (C, JavaScript)
