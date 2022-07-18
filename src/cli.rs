@@ -21,7 +21,7 @@ pub struct Args {
     #[clap(short = 'f', long = "name", value_parser)]
     pub file_name: String,
 
-    /// Language target to compile (C, JavaScript)
+    /// Target language (C, JavaScript)
     #[clap(short = 't', long = "target", value_parser)]
-    pub language_target: String,
+    pub target_language: String,
 }

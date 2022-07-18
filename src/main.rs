@@ -53,7 +53,7 @@ fn main() -> io::Result<()> {
     println!("--ENDING PARSER--");
 
     println!("--STARTING CODE GENERATION--");
-    let selected_language = get_target_language(&args.language_target);
+    let selected_language = get_target_language(&args.target_language);
 
     let mut code_generator = match selected_language {
         TargetLanguage::C => c::C::new(),
