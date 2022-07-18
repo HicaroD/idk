@@ -1,17 +1,17 @@
 mod ast;
 mod backend;
+mod cli;
 mod lexer;
 mod parser;
-mod cli;
 
 use backend::*;
+use clap::Parser as ClapParser;
+use cli::{get_target_language, Args, TargetLanguage};
 use lexer::Lexer;
 use parser::Parser;
 use std::{fs, io, path::Path};
-use clap::Parser as ClapParser;
-use cli::{Args, get_target_language, TargetLanguage};
 
-fn get_source_code(path: String) -> io::Result<Vec<char>> {
+fn get_source_code(path: &str) -> io::Result<Vec<char>> {
     return Ok(fs::read_to_string(path)?.chars().collect::<Vec<char>>());
 }
 
@@ -24,7 +24,7 @@ fn main() -> io::Result<()> {
         std::process::exit(1);
     }
 
-    let source_code = get_source_code(args.file_name.clone())?;
+    let source_code = get_source_code(&args.file_name)?;
 
     if source_code.is_empty() {
         std::process::exit(1);
