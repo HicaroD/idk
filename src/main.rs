@@ -2,42 +2,17 @@ mod ast;
 mod backend;
 mod lexer;
 mod parser;
+mod cli;
 
 use backend::*;
 use lexer::Lexer;
 use parser::Parser;
-use std::{env, fs, io, path::Path};
-
+use std::{fs, io, path::Path};
 use clap::Parser as ClapParser;
-
-#[derive(ClapParser, Debug)]
-#[clap(author="Hícaro Dânrlley", version="0.1", about="A general purpose and open-source programming language", long_about = None)]
-struct Args {
-    /// File name
-    #[clap(short = 'f', long = "name", value_parser)]
-    file_name: String,
-
-    /// Language target to compile (C, JavaScript)
-    #[clap(short = 't', long = "target", value_parser)]
-    language_target: String,
-}
+use cli::{Args, get_target_language, TargetLanguage};
 
 fn get_source_code(path: String) -> io::Result<Vec<char>> {
     return Ok(fs::read_to_string(path)?.chars().collect::<Vec<char>>());
-}
-
-enum TargetLanguage<'a> {
-    C,
-    JavaScript,
-    Unknown(&'a str),
-}
-
-fn get_target_language(selected_language: &str) -> TargetLanguage {
-    match selected_language {
-        "C" => TargetLanguage::C,
-        "JavaScript" => TargetLanguage::JavaScript,
-        unknown_language => TargetLanguage::Unknown(unknown_language),
-    }
 }
 
 fn main() -> io::Result<()> {
