@@ -93,11 +93,7 @@ impl Parser {
         let mut operators: Vec<Token> = vec![];
         let mut operands: Vec<Token> = vec![];
 
-        loop {
-            if self.is_end_of_statement() {
-                break;
-            }
-
+        while !self.is_end_of_statement() {
             match &self.current_token {
                 number if self.current_token.is_number() => {
                     operands.push(number.clone());
