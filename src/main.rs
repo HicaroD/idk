@@ -8,25 +8,48 @@ use lexer::Lexer;
 use parser::Parser;
 use std::{env, fs, io, path::Path};
 
+use clap::Parser as ClapParser;
+
+#[derive(ClapParser, Debug)]
+#[clap(author="Hícaro Dânrlley", version="0.1", about="A general purpose and open-source programming language", long_about = None)]
+struct Args {
+    /// File name
+    #[clap(short = 'f', long = "name", value_parser)]
+    file_name: String,
+
+    /// Language target to compile (C, JavaScript)
+    #[clap(short = 't', long = "target", value_parser)]
+    language_target: String,
+}
+
 fn get_source_code(path: String) -> io::Result<Vec<char>> {
     return Ok(fs::read_to_string(path)?.chars().collect::<Vec<char>>());
 }
 
-fn main() -> io::Result<()> {
-    let args: Vec<String> = env::args().collect();
+enum TargetLanguage<'a> {
+    C,
+    JavaScript,
+    Unknown(&'a str),
+}
 
-    if args.len() < 2 {
-        eprintln!("Error: No input files");
-        std::process::exit(1);
+fn get_target_language(selected_language: &str) -> TargetLanguage {
+    match selected_language {
+        "C" => TargetLanguage::C,
+        "JavaScript" => TargetLanguage::JavaScript,
+        unknown_language => TargetLanguage::Unknown(unknown_language),
     }
+}
 
-    let path = Path::new(&args[1]);
+fn main() -> io::Result<()> {
+    let args = Args::parse();
+
+    let path = Path::new(&args.file_name);
     if !path.exists() {
         eprintln!("Error: No such file or directory");
         std::process::exit(1);
     }
 
-    let source_code = get_source_code(args[1].clone())?;
+    let source_code = get_source_code(args.file_name.clone())?;
 
     if source_code.is_empty() {
         std::process::exit(1);
@@ -55,7 +78,17 @@ fn main() -> io::Result<()> {
     println!("--ENDING PARSER--");
 
     println!("--STARTING CODE GENERATION--");
-    let mut code_generator = c::C::new();
+    let selected_language = get_target_language(&args.language_target);
+
+    let mut code_generator = match selected_language {
+        TargetLanguage::C => c::C::new(),
+        TargetLanguage::JavaScript => unimplemented!(),
+        TargetLanguage::Unknown(unknown_language) => {
+            eprintln!("Unknown target language: {}", unknown_language);
+            std::process::exit(1);
+        }
+    };
+
     code_generator.generate(ast);
     println!("--STARTING CODE GENERATION--");
     Ok(())
