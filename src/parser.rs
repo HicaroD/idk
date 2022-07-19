@@ -220,11 +220,7 @@ impl Parser {
         let expression = self.parse_expression(scope)?;
         self.parse_semicolon()?;
 
-        // let evaluated_expression = evaluate_ast(expression.clone())?;
-        // println!("EVALUATED EXPRESSION: {}", evaluated_expression);
-
-        let assignment = Assignment::new(var_type, name, expression);
-        Ok(assignment)
+        Ok(Assignment::new(var_type, name, expression))
     }
 
     fn parse_function_parameters(&mut self) -> Result<Vec<Parameter>, String> {
@@ -317,7 +313,6 @@ impl Parser {
                 self.current_token
             ));
         }
-        self.advance();
 
         let function = Function::new(function_name.clone(), parameters, body, return_type);
         self.symbol_table
